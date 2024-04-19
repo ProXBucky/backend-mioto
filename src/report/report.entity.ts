@@ -1,6 +1,6 @@
 import { IsNotEmpty } from "class-validator";
-import { Car } from "../../car/car/car.entity";
-import { User } from "../../user/user/user.entity";
+import { Car } from "../car/car.entity";
+import { User } from "../user/user.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

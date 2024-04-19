@@ -1,8 +1,9 @@
-import { Car } from "../../car/car/car.entity";
-import { User } from "../../user/user/user.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Payment } from "../payment/payment.entity";
 import { IsDateString } from "class-validator";
+import { User } from "../user/user.entity";
+import { Car } from "../car/car.entity";
+import { Payment } from "../payment/payment.entity";
+
 
 @Entity()
 export class Rent {

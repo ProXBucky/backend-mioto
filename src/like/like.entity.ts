@@ -1,7 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
-import { User } from '../../user/user/user.entity';
-import { Car } from '../../car/car/car.entity';
+import { User } from '../user/user.entity';
+import { Car } from '../car/car.entity';
+
 
 
 @Entity()

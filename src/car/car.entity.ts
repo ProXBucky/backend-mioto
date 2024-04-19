@@ -1,11 +1,12 @@
-import { Rent } from "../../rent/rent/rent.entity"
-import { Review } from "../../review/review/review.entity";
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { CarImage } from "../carImage/image.entity";
 import { Feature } from "../feature/feature.entity";
-import { CarImage } from "../image/image.entity";
-import { CarOwner } from "../../user/owner/owner.entity";
-import { Like } from "../../review/like/like.entity";
-import { Report } from "../../review/report/report.entity";
+import { Like } from "../like/like.entity";
+import { CarOwner } from "../owner/owner.entity";
+import { Rent } from "../rent/rent.entity";
+import { Report } from "../report/report.entity";
+import { Review } from "../review/review.entity";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+
 
 @Entity()
 export class Car {

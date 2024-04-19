@@ -1,13 +1,14 @@
 import { IsDateString, IsEnum, IsNotEmpty } from "class-validator";
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserAddress } from "../address/address.entity";
 import { UserLicense } from "../license/license.entity";
-import { Review } from "../../review/review/review.entity";
-import { Report } from "../../review/report/report.entity";
-import { Like } from "../../review/like/like.entity";
+import { Like } from "../like/like.entity";
 import { CarOwner } from "../owner/owner.entity";
-import { Rent } from "../../rent/rent/rent.entity";
-import { Voucher } from "../../rent/voucher/voucher.entity";
+import { Rent } from "../rent/rent.entity";
+import { Report } from "../report/report.entity";
+import { Review } from "../review/review.entity";
+import { Voucher } from "../voucher/voucher.entity";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+
 
 @Entity()
 export class User {
