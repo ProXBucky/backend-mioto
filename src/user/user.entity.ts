@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsNotEmpty } from "class-validator";
+import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsOptional } from "class-validator";
 import { UserAddress } from "../address/address.entity";
 import { UserLicense } from "../license/license.entity";
 import { Like } from "../like/like.entity";
@@ -7,13 +7,19 @@ import { Rent } from "../rent/rent.entity";
 import { Report } from "../report/report.entity";
 import { Review } from "../review/review.entity";
 import { Voucher } from "../voucher/voucher.entity";
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-
+import { BeforeInsert, Column, Entity, IsNull, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import * as argon2 from "argon2"
+import { Exclude } from "class-transformer";
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
     userId: number;
+
+    @Column()
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
 
     @Column()
     @IsNotEmpty()
@@ -32,18 +38,24 @@ export class User {
 
     @Column()
     @IsNotEmpty()
+    @Exclude()
     password: string;
+
+    @BeforeInsert()
+    async hashPassword() {
+        this.password = await argon2.hash(this.password);
+    }
 
     @Column({ type: 'date' })
     @IsDateString()
     joinDate: Date;
 
-    @Column()
-    @IsNotEmpty()
-    @IsEnum(['male', 'female']) // Assuming 'gender' can only be male or female
-    gender: string;
+    @Column({ nullable: true })
+    @IsEnum(['male', 'female', null])
+    gender: string | null;
 
-    @Column({ type: 'date' })
+    @Column({ nullable: true, type: 'date' })
+    @IsOptional()
     @IsDateString()
     dob: Date;
 
