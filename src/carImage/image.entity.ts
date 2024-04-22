@@ -9,6 +9,9 @@ export class CarImage {
     @Column()
     imageLink: string;
 
+    @Column()
+    imageLinkID: string;
+
     @ManyToOne(() => Car, car => car.images)
     @JoinColumn({ name: 'carId' })
     car: Car;

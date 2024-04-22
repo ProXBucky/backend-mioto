@@ -30,12 +30,15 @@ import { UserAddress } from './address/address.entity';
 import { UserLicense } from './license/license.entity';
 import { CarOwner } from './owner/owner.entity';
 import { User } from './user/user.entity';
-
+import { MulterModule } from '@nestjs/platform-express';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { CloudinaryController } from './cloudinary/cloudinary.controller';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
 @Module({
   imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule,
-    OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule,
+    OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -46,8 +49,14 @@ import { User } from './user/user.entity';
       entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress, UserLicense, CarOwner, User],
       synchronize: true,
     }),
+    MulterModule.register({
+      dest: './upload',
+      limits: {
+        fileSize: 10 * 1024 * 1024, // Giới hạn kích thước file là 10MB
+      },
+    })
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, CloudinaryController],
+  providers: [AppService, CloudinaryService],
 })
 export class AppModule { }

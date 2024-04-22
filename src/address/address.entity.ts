@@ -16,6 +16,7 @@ export class UserAddress {
     ward: string;
 
     @Column()
+    @IsNotEmpty()
     district: string;
 
     @Column()
@@ -23,6 +24,6 @@ export class UserAddress {
     city: string;
 
     @ManyToOne(() => User, user => user.address)
-    @JoinColumn({ name: 'addressId' })
+    @JoinColumn({ name: 'userId' })
     user: User;
 }

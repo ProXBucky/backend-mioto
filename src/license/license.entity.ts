@@ -15,6 +15,10 @@ export class UserLicense {
     @IsNotEmpty()
     fileUpload: string;
 
+    @Column()
+    @IsNotEmpty()
+    fileUploadID: string;
+
     @OneToOne(() => User, user => user.licenses)
     @JoinColumn({ name: 'userId' })
     user: User;

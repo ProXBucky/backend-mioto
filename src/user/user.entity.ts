@@ -32,6 +32,9 @@ export class User {
     @Column({ nullable: true })
     avatarImage: string;
 
+    @Column({ nullable: true })
+    avatarImageID: string;
+
     @Column()
     @IsNotEmpty()
     username: string;
@@ -51,7 +54,7 @@ export class User {
     joinDate: Date;
 
     @Column({ nullable: true })
-    @IsEnum(['male', 'female', null])
+    @IsEnum(['Nam', 'Nữ', null])
     gender: string | null;
 
     @Column({ nullable: true, type: 'date' })

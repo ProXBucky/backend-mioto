@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDTO } from './dto/CreateUserDTO.dto';
 import { UpdateUserDTO } from './dto/UpdateUserDTO.dto';
 import { User } from './user.entity';
+import { ChangePasswordDTO } from './dto/ChangePasswordDTO.dto';
 
 @Controller('user')
 export class UserController {
@@ -56,6 +57,16 @@ export class UserController {
         } catch (e) {
             console.log(e)
             throw new HttpException('Delete user fail', HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @Put("change-password/:userId")
+    changePassword(@Param('userId') id: number, @Body() data: ChangePasswordDTO): Promise<User> {
+        try {
+            return this.userService.changePassword(id, data)
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Change password fail', HttpStatus.BAD_REQUEST)
         }
     }
 
