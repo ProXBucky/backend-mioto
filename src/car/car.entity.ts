@@ -38,9 +38,6 @@ export class Car {
     fuelType: string;
 
     @Column()
-    fuelConsume: number;
-
-    @Column()
     mortgage: number;
 
     @Column()

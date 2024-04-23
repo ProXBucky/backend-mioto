@@ -1,21 +1,20 @@
 // create-user.dto.ts
-import { Exclude, Expose } from 'class-transformer';
-import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
+import { Expose } from 'class-transformer';
 
 export class GetUserDTO {
 
     @Expose()
-    email: string;
+    userId: string;
 
     @Expose()
     fullname: string;
 
     @Expose()
-    phone: string;
-
-    @Expose()
     username: string;
 
-    @Exclude()
+    @Expose()
     password: string;
+
+    @Expose()
+    avatarImage: string;
 }

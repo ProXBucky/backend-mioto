@@ -1,0 +1,4 @@
+export const BACKEND_PORT = 
+export const CLOUD_NAME = 
+export const CLOUD_API_KEY = 
+export const CLOUD_API_SECRET = 

@@ -2,15 +2,16 @@
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UploadApiErrorResponse, UploadApiResponse, v2 as cloudinary, v2 } from 'cloudinary';
+import { CLOUD_API_KEY, CLOUD_API_SECRET, CLOUD_NAME } from '../config';
 
 
 @Injectable()
 export class CloudinaryService {
     constructor() {
         v2.config({
-            cloud_name: 'dqi9ub7dw',
-            api_key: '135871654966123',
-            api_secret: 'GDXm_IEKZyaz7LJ8PQiRlecvwBQ'
+            cloud_name: CLOUD_NAME,
+            api_key: CLOUD_API_KEY,
+            api_secret: CLOUD_API_SECRET
         })
     }
 

@@ -8,6 +8,8 @@ import { UpdateUserDTO } from './dto/UpdateUserDTO.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ChangePasswordDTO } from './dto/ChangePasswordDTO.dto';
 import * as argon2 from 'argon2';
+import { SECRET } from 'src/config';
+import { GetUserDTO } from './dto/GetUserDTO.dto';
 @Injectable()
 export class UserService {
 
@@ -103,7 +105,20 @@ export class UserService {
         const hashedNewPassword = await argon2.hash(data.newPassword);
         user.password = hashedNewPassword
         return await this.userRepo.save(user)
-
     }
+
+    async findOneByUsernameOrEmail(usernameOrEmail: string): Promise<GetUserDTO> {
+        const userFinded = await this.userRepo.findOne({
+            where: [
+                { username: usernameOrEmail },
+                { email: usernameOrEmail }
+            ]
+        });
+        if (!userFinded) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        return plainToClass(GetUserDTO, userFinded);
+    }
+
 
 }

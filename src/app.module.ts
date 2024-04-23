@@ -34,11 +34,12 @@ import { MulterModule } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { CloudinaryController } from './cloudinary/cloudinary.controller';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
   imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule,
-    OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule,
+    OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule, AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
