@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { UserAddress } from './address.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('address')
 export class AddressController {
@@ -9,6 +10,7 @@ export class AddressController {
     ) { }
 
     @Get("/:userId")
+    @UseGuards(JwtAuthGuard)
     getAllAddressById(@Param('userId') userId: number): Promise<UserAddress[]> {
         try {
             return this.addressService.getAllAddressById(userId)
@@ -19,6 +21,7 @@ export class AddressController {
     }
 
     @Post("/:userId")
+    @UseGuards(JwtAuthGuard)
     postAddress(@Param('userId') userId: number, @Body() data: UserAddress): Promise<UserAddress> {
         try {
             return this.addressService.postAddress(userId, data)
@@ -29,6 +32,7 @@ export class AddressController {
     }
 
     @Delete("/:addressId")
+    @UseGuards(JwtAuthGuard)
     deleteAddress(@Param('addressId') addressId: number): Promise<UserAddress> {
         try {
             return this.addressService.deleteAddress(addressId)

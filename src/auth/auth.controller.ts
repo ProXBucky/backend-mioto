@@ -22,4 +22,10 @@ export class AuthController {
             avatarImage: user.avatarImage
         };
     }
+
+    @Post('/logout')
+    async logout(@Body() token: { token: string }) {
+        await this.authService.invalidateToken(token.token);
+        return { message: 'Logged out successfully' };
+    }
 }

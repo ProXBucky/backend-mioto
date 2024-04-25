@@ -1,3 +1,4 @@
+import { IsOptional } from "class-validator";
 import { CarImage } from "../carImage/image.entity";
 import { Feature } from "../feature/feature.entity";
 import { Like } from "../like/like.entity";
@@ -23,9 +24,6 @@ export class Car {
     modelYear: number;
 
     @Column()
-    color: string;
-
-    @Column()
     capacity: number;
 
     @Column()
@@ -37,8 +35,8 @@ export class Car {
     @Column()
     fuelType: string;
 
-    @Column()
-    mortgage: number;
+    @Column({ nullable: true })
+    mortgage: number | null;
 
     @Column()
     ownerId: number;

@@ -26,4 +26,8 @@ export class AuthService {
     async createToken(payload: any): Promise<string> {
         return this.jwtService.sign(payload);
     }
+
+    async invalidateToken(token: string): Promise<void> {
+        this.jwtService.decode(token);
+    }
 }
