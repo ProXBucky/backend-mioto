@@ -10,7 +10,7 @@ import {
     UploadedFiles,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 // ... other imports
 
@@ -34,6 +34,20 @@ export class CloudinaryController {
             throw new Error('Failed to upload image')
         }
     }
+
+    @Post('uploads')
+    @UseInterceptors(FilesInterceptor('files'))
+    async uploadMultiImages(@UploadedFiles() files: Express.Multer.File[]) {
+        try {
+            const filePaths = files.map(file => file.path);
+            const results = await this.cloudinaryService.uploadMultiImages(filePaths);
+            return results;
+        } catch (error) {
+            console.error('Error uploading images', error);
+            throw new Error('Failed to upload images');
+        }
+    }
+
 
     @Post('upload-license')
     @UseInterceptors(FileInterceptor('file'))

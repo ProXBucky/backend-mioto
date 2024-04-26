@@ -4,7 +4,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UploadApiErrorResponse, UploadApiResponse, v2 as cloudinary, v2 } from 'cloudinary';
 import { CLOUD_API_KEY, CLOUD_API_SECRET, CLOUD_NAME } from '../config';
 
-
 @Injectable()
 export class CloudinaryService {
     constructor() {
@@ -37,6 +36,31 @@ export class CloudinaryService {
             })
         });
     }
+
+
+
+
+    async uploadMultiImages(images: string[]): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
+        const uploadPromises: Promise<(UploadApiResponse | UploadApiErrorResponse)>[] = images.map(image => {
+            return new Promise((resolve, reject) => {
+                v2.uploader.upload(image, { folder: 'carImage' }, (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        });
+
+        try {
+            return await Promise.all(uploadPromises);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
 
     async uploadImageLicense(filePath: string): Promise<UploadApiResponse | UploadApiErrorResponse> {
         return new Promise<UploadApiResponse | UploadApiErrorResponse>((resolve, reject) => {

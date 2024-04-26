@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Car } from "../car/car.entity";
+import { CarCarFeature } from "../car/carCarFeature.entity";
 
 @Entity()
 export class Feature {
@@ -7,12 +8,16 @@ export class Feature {
     featureId: number;
 
     @Column()
+    featureCode: string;
+
+    @Column()
     featureName: string;
 
     @Column()
     featureIcon: string;
 
-    @ManyToOne(() => Car, car => car.features)
-    @JoinColumn({ name: 'carId' })
-    car: Car;
+    @OneToMany(() => CarCarFeature, carCarFeature => carCarFeature.feature)
+    carFeatures: CarCarFeature[];
+
+
 }
