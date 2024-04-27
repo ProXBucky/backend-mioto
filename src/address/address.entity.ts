@@ -9,18 +9,15 @@ export class UserAddress {
     addressId: number;
 
     @Column()
-    @IsNotEmpty()
     streetAddress: string;
 
-    @Column()
-    ward: string;
+    @Column({ nullable: true })
+    ward: string | null;
 
     @Column()
-    @IsNotEmpty()
     district: string;
 
     @Column()
-    @IsNotEmpty()
     city: string;
 
     @ManyToOne(() => User, user => user.address)

@@ -16,4 +16,9 @@ export class FeatureController {
         }
     }
 
+    @Get('test')
+    convertArrFeatureCodetoArrFeatureId(arr: string[]) {
+        return this.featureService.convertArrFeatureCodetoArrFeatureId(arr)
+    }
+
 }

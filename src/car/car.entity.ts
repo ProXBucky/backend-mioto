@@ -7,7 +7,7 @@ import { Rent } from "../rent/rent.entity";
 import { Report } from "../report/report.entity";
 import { Review } from "../review/review.entity";
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { CarCarFeature } from "./carCarFeature.entity";
+import { CarHasFeature } from "../carHasFeature/carHasFeature.entity";
 
 
 @Entity()
@@ -45,6 +45,18 @@ export class Car {
     @Column('text')
     description: string;
 
+    @Column()
+    streetAddress: string;
+
+    @Column({ nullable: true })
+    ward: string | null;
+
+    @Column()
+    district: string;
+
+    @Column()
+    city: string;
+
     @OneToMany(() => Review, review => review.car)
     reviews: Review[];
 
@@ -60,8 +72,8 @@ export class Car {
     @OneToMany(() => CarImage, carImage => carImage.car)
     images: CarImage[];
 
-    @OneToMany(() => CarCarFeature, carCarFeature => carCarFeature.car)
-    carFeatures: CarCarFeature[];
+    @OneToMany(() => CarHasFeature, carHasFeature => carHasFeature.car)
+    carFeatures: CarHasFeature[];
 
     @OneToMany(() => Rent, rent => rent.car)
     rents: Rent[];

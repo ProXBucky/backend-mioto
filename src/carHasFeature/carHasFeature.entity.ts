@@ -3,7 +3,7 @@ import { Car } from "../car/car.entity";
 import { Feature } from "../feature/feature.entity";
 
 @Entity()
-export class CarCarFeature {
+export class CarHasFeature {
     @PrimaryGeneratedColumn()
     carFeatureId: number;
 

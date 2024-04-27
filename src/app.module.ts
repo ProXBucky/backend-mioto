@@ -35,11 +35,12 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { CloudinaryController } from './cloudinary/cloudinary.controller';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AuthModule } from './auth/auth.module';
-import { CarCarFeature } from './car/carCarFeature.entity';
+import { CarHasFeature } from './carHasFeature/carHasFeature.entity';
+import { CarHasFeatureModule } from './carHasFeature/carHasFeature.module';
 
 
 @Module({
-  imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule,
+  imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule, CarHasFeatureModule,
     OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule, AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -48,7 +49,7 @@ import { CarCarFeature } from './car/carCarFeature.entity';
       username: 'postgres',
       password: '123456',
       database: 'miotoDB',
-      entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress, UserLicense, CarOwner, User, CarCarFeature],
+      entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress, UserLicense, CarOwner, User, CarHasFeature],
       synchronize: true,
     }),
     MulterModule.register({
