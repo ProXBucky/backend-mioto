@@ -1,4 +1,4 @@
-import { Controller, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Controller, Delete, Get, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
 import { CarImage } from './image.entity';
 import { Car } from 'src/car/car.entity';
 import { ImageService } from './image.service';
@@ -14,6 +14,26 @@ export class ImageController {
         } catch (e) {
             console.log(e)
             throw new HttpException('Post images of car fail', HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @Get("/:carId")
+    getAllCarImageByCarId(@Param('carId') carId: number): Promise<CarImage[]> {
+        try {
+            return this.imageSerivce.getAllCarImageByCarId(carId)
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Post images of car fail', HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @Delete("/:carId")
+    deleteAllCarImageByCarId(@Param('carId') carId: number): Promise<CarImage[]> {
+        try {
+            return this.imageSerivce.deleteAllCarImageByCarId(carId)
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Delete images of car fail', HttpStatus.BAD_REQUEST)
         }
     }
 }

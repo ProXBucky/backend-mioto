@@ -1,4 +1,4 @@
-import { IsOptional } from "class-validator";
+import { IsEnum, IsOptional } from "class-validator";
 import { CarImage } from "../carImage/image.entity";
 import { Feature } from "../feature/feature.entity";
 import { Like } from "../like/like.entity";
@@ -56,6 +56,10 @@ export class Car {
 
     @Column()
     city: string;
+
+    @Column({ nullable: true })
+    @IsEnum(['Đang duyệt', 'Chưa cho thuê', 'Đã cho thuê'])
+    status: string | null;
 
     @OneToMany(() => Review, review => review.car)
     reviews: Review[];

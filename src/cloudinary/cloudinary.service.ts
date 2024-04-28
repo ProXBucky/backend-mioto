@@ -60,7 +60,27 @@ export class CloudinaryService {
         }
     }
 
-
+    async deleteMultiImages(publicIdArray: string[]): Promise<any> {
+        try {
+            const deletionResults = await Promise.all(publicIdArray.map(publicId => {
+                return v2.uploader.destroy(publicId);
+            }));
+            return deletionResults.map(result => {
+                if (result.result === 'ok') {
+                    return { success: true };
+                } else {
+                    return { success: false, error: result.error };
+                }
+            });
+        } catch (error) {
+            console.error('Error deleting images:', error);
+            if (error.http_code === 404) {
+                throw new HttpException('Image not found', HttpStatus.NOT_FOUND);
+            } else {
+                throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
 
     async uploadImageLicense(filePath: string): Promise<UploadApiResponse | UploadApiErrorResponse> {
         return new Promise<UploadApiResponse | UploadApiErrorResponse>((resolve, reject) => {
@@ -70,4 +90,11 @@ export class CloudinaryService {
             })
         });
     }
+
+
+
+
+
 }
+
+

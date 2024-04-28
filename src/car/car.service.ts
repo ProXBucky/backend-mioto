@@ -7,6 +7,7 @@ import { OwnerService } from '../owner/owner.service';
 import { FeatureService } from '../feature/feature.service';
 import { CarHasFeatureService } from '../carHasFeature/carHasFeature.service';
 import { ImageService } from '../carImage/image.service';
+import { EditCarDTO } from './dto/EditCarDTO.dto';
 
 @Injectable()
 export class CarService {
@@ -20,8 +21,16 @@ export class CarService {
     ) { }
 
     async getCarByCarId(carId: number): Promise<Car> {
-        return await this.carRepo.findOne({ where: { carId: carId } })
+        let cars = await this.carRepo.findOne({
+            where: { carId: carId },
+            relations: ['images', 'carFeatures.feature'],
+        });
+        if (!cars) {
+            throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
+        }
+        return cars
     }
+
 
     async registerNewCar(userId: number, body: RegisterNewCarDTO): Promise<Car> {
         try {
@@ -40,6 +49,7 @@ export class CarService {
             newCar.district = body.district
             newCar.ward = body.ward
             newCar.streetAddress = body.streetAddress
+            newCar.status = "Đang duyệt"
             let carReponse = await this.carRepo.save(newCar)
             if (carReponse && carReponse.carId) {
                 try {
@@ -86,4 +96,37 @@ export class CarService {
             console.log('5', err)
         }
     }
+
+    async editInformationCar(carId: number, body: EditCarDTO): Promise<Car> {
+        try {
+            let carEdit = await this.carRepo.findOne({ where: { carId: carId } })
+            if (!carEdit) {
+                throw new HttpException('This car is not found', HttpStatus.NOT_FOUND)
+            }
+            if (carId && body.arrayImageCar) {
+                try {
+                    // Xoa cac anh cu
+                    await this.carImageService.deleteAllCarImageByCarId(carId)
+                    //Them cac anh moi
+                    await this.carImageService.postMultiImageCar(carId, body.arrayImageCar)
+                } catch (e) {
+                    console.log('4', e)
+                }
+            }
+            carEdit.plateNumber = body.plateNumber
+            carEdit.mortgage = body.mortgage
+            carEdit.pricePerDay = body.pricePerDay
+            carEdit.streetAddress = body.streetAddress
+            carEdit.ward = body.ward
+            carEdit.district = body.district
+            carEdit.city = body.city
+            return await this.carRepo.save(carEdit)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    // async deleteCarByCarId(carId: number): Promise<Car> {
+
+    // }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CarOwner } from './owner.entity';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
@@ -26,4 +26,24 @@ export class OwnerService {
 
         return await this.carOwnerRepo.save(carOwner)
     }
+
+    async getAllOwnByUserId(userId: number): Promise<Car[]> {
+        let cars = await this.carOwnerRepo.find({
+            where: { user: { userId: userId } },
+            relations: ['car', 'car.images'],
+        });
+        if (cars.length <= 0) {
+            throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
+        }
+        return cars.map(carOwner => carOwner.car);
+    }
+
+    async deleteOwnByCarId(carId: number): Promise<CarOwner> {
+        let res = await this.carOwnerRepo.findOne({ where: { car: { carId: carId } } })
+        if (!res) {
+            throw new HttpException('CarOwner not found', HttpStatus.NOT_FOUND)
+        }
+        return await this.carOwnerRepo.remove(res)
+    }
+
 }

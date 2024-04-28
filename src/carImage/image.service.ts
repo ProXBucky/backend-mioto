@@ -11,7 +11,6 @@ export class ImageService {
     constructor(
         @InjectRepository(CarImage) private readonly carImageRepo: Repository<CarImage>,
         private readonly cloudinaryService: CloudinaryService
-
     ) { }
 
     async postMultiImageCar(carIds: number, images: string[]): Promise<CarImage[]> {
@@ -30,6 +29,30 @@ export class ImageService {
         } catch (error) {
             // Xử lý lỗi ở đây
             throw error;
+        }
+    }
+
+    async getAllCarImageByCarId(carId: number): Promise<CarImage[]> {
+        try {
+            let res = await this.carImageRepo.find({ where: { car: { carId: carId } } })
+            if (res && res.length > 0) {
+                return res
+            }
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async deleteAllCarImageByCarId(carId: number): Promise<CarImage[]> {
+        try {
+            let res = await this.carImageRepo.find({ where: { car: { carId: carId } } })
+            if (res && res.length > 0) {
+                const imageLinkIDs = res.map(item => item.imageLinkID);
+                await this.cloudinaryService.deleteMultiImages(imageLinkIDs)
+                return await this.carImageRepo.remove(res)
+            }
+        } catch (err) {
+            console.log(err)
         }
     }
 }
