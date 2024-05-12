@@ -57,6 +57,9 @@ export class Car {
     @Column()
     city: string;
 
+    @Column()
+    location: string;
+
     @Column({ nullable: true })
     @IsEnum(['Đang duyệt', 'Chưa cho thuê', 'Đã cho thuê'])
     status: string | null;

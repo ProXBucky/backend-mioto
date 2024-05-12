@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
 import { OwnerService } from '../owner/owner.service';
@@ -23,11 +23,28 @@ export class CarService {
     async getCarByCarId(carId: number): Promise<Car> {
         let cars = await this.carRepo.findOne({
             where: { carId: carId },
-            relations: ['images', 'carFeatures.feature'],
+            relations: ['images', 'carFeatures.feature', 'owners.user'],
         });
         if (!cars) {
             throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
         }
+        return cars
+    }
+
+    async getAllCarByCity(city: string): Promise<Car[]> {
+        let cars = await this.carRepo.find({
+            where: { location: Like(`%${city}%`) },
+            relations: ['images'],
+        });
+        if (!cars) {
+            throw new HttpException('List car not found', HttpStatus.NOT_FOUND);
+        }
+        cars = cars.map(car => {
+            if (car.images && car.images.length > 0) {
+                car.images = [car.images[0]];
+            }
+            return car;
+        })
         return cars
     }
 
@@ -46,6 +63,7 @@ export class CarService {
             newCar.pricePerDay = body.pricePerDay
             newCar.description = body.description
             newCar.city = body.city
+            newCar.location = body.location
             newCar.district = body.district
             newCar.ward = body.ward
             newCar.streetAddress = body.streetAddress
@@ -120,6 +138,7 @@ export class CarService {
             carEdit.ward = body.ward
             carEdit.district = body.district
             carEdit.city = body.city
+            carEdit.location = body.location
             return await this.carRepo.save(carEdit)
         } catch (err) {
             console.log(err)

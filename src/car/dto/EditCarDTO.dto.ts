@@ -25,6 +25,9 @@ export class EditCarDTO {
     city: string;
 
     @IsNotEmpty()
+    location: string;
+
+    @IsNotEmpty()
     arrayImageCar: string[];
 
 }

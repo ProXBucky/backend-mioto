@@ -17,6 +17,14 @@ export class CarController {
         }
     }
 
+    @Get("/all/:city")
+    getAllCarByCity(@Param('city') city: string): Promise<Car[]> {
+        try {
+            return this.carService.getAllCarByCity(city)
+        } catch (e) {
+            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND)
+        }
+    }
 
     @Post("/register/:userId")
     registerNewCar(@Param('userId') userId: number, @Body() body: RegisterNewCarDTO): Promise<Car> {

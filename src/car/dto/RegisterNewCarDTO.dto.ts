@@ -46,6 +46,9 @@ export class RegisterNewCarDTO {
     city: string;
 
     @IsNotEmpty()
+    location: string;
+
+    @IsNotEmpty()
     arrayFeatureCode: string[];
 
     @IsNotEmpty()
