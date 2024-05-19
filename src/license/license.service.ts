@@ -1,11 +1,11 @@
-import { HttpCode, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateLicenseDTO } from './dto/CreateLicenseDTO.dto';
 import { UserLicense } from './license.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { User } from '../user/user.entity';
-import { HttpStatusCode } from 'axios';
+
 
 @Injectable()
 export class LicenseService {
@@ -18,7 +18,7 @@ export class LicenseService {
     async getLicenseByUserId(userId: number): Promise<UserLicense> {
         let licenseFind = await this.userLicenseRepo.findOne({ where: { user: { userId: userId } } })
         if (!licenseFind) {
-            throw new HttpException('License not found', HttpStatus.FOUND)
+            throw new HttpException('License not found', HttpStatus.NO_CONTENT)
         }
         return licenseFind
     }
