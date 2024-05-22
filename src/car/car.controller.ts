@@ -3,13 +3,14 @@ import { CarService } from './car.service';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
 import { EditCarDTO } from './dto/EditCarDTO.dto';
+import { GetCarDTO } from './dto/GetCarDTO.dto';
 
 @Controller('car')
 export class CarController {
     constructor(private readonly carService: CarService) { }
 
     @Get("/:carId")
-    getCarByCarId(@Param('carId') carId: number): Promise<Car> {
+    getCarByCarId(@Param('carId') carId: number): Promise<GetCarDTO> {
         try {
             return this.carService.getCarByCarId(carId)
         } catch (e) {

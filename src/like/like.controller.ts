@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, 
 import { LikeService } from './like.service';
 import { Like } from './like.entity';
 import { LikeDTO } from './dto/LikeDTO.dto';
+import { GetLikeDTO } from './dto/GetLikeDTO.dto';
 
 @Controller('like')
 export class LikeController {
@@ -36,7 +37,7 @@ export class LikeController {
 
 
     @Get("/:userId")
-    getAllCarLiked(@Param('userId') userId: number): Promise<Like[]> {
+    getAllCarLiked(@Param('userId') userId: number): Promise<GetLikeDTO[]> {
         try {
             return this.likeService.getAllCarLiked(userId)
         } catch (e) {

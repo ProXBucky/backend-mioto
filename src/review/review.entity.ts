@@ -9,15 +9,15 @@ export class Review {
     reviewId: number;
 
     @Column('text')
-    @IsNotEmpty()
     content: string;
 
-    @Column()
-    @IsNotEmpty()
+    @Column('text')
+    location: string;
+
+    @Column({ type: 'float' })
     reviewScore: number;
 
     @Column({ type: 'date' })
-    @IsDateString()
     reviewDate: Date;
 
     @ManyToOne(() => User, user => user.reviews)

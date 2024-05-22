@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
 import { LikeDTO } from './dto/LikeDTO.dto';
+import { plainToInstance } from 'class-transformer';
+import { GetLikeDTO } from './dto/GetLikeDTO.dto';
 
 @Injectable()
 export class LikeService {
@@ -75,7 +77,7 @@ export class LikeService {
         return carLiked;
     }
 
-    async getAllCarLiked(userId: number): Promise<Like[]> {
+    async getAllCarLiked(userId: number): Promise<GetLikeDTO[]> {
         let allCarliked = await this.likeRepo.find({
             where: { user: { userId: userId } },
             relations: ['car', 'car.images', 'car.owners.user'],
@@ -87,7 +89,10 @@ export class LikeService {
         if (allCarliked.length == 0) {
             throw new HttpException('You dont like any car yet', HttpStatus.NO_CONTENT)
         }
-        return allCarliked
+        return allCarliked.map(car => {
+            const carLikeDto = plainToInstance(GetLikeDTO, car);
+            return carLikeDto;
+        });
     }
 
 }

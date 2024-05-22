@@ -12,6 +12,9 @@ export class Report {
     @IsNotEmpty()
     reason: string;
 
+    @Column({ type: 'date' })
+    reportDate: Date;
+
     @ManyToOne(() => User, user => user.reports)
     @JoinColumn({ name: 'userId' })
     user: User;

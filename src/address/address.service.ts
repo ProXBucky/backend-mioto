@@ -36,7 +36,6 @@ export class AddressService {
         if (!addressFind) {
             throw new HttpException('Address not found', HttpStatus.NOT_FOUND)
         }
-        console.log(addressFind)
         let response = await this.userAddressRepo.remove(addressFind)
         return response
     }

@@ -8,6 +8,8 @@ import { FeatureService } from '../feature/feature.service';
 import { CarHasFeatureService } from '../carHasFeature/carHasFeature.service';
 import { ImageService } from '../carImage/image.service';
 import { EditCarDTO } from './dto/EditCarDTO.dto';
+import { GetCarDTO } from './dto/GetCarDTO.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CarService {
@@ -20,7 +22,7 @@ export class CarService {
         private readonly carImageService: ImageService
     ) { }
 
-    async getCarByCarId(carId: number): Promise<Car> {
+    async getCarByCarId(carId: number): Promise<GetCarDTO> {
         let cars = await this.carRepo.findOne({
             where: { carId: carId },
             relations: ['images', 'carFeatures.feature', 'owners.user'],
@@ -28,7 +30,7 @@ export class CarService {
         if (!cars) {
             throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
         }
-        return cars
+        return plainToInstance(GetCarDTO, cars);
     }
 
     async getAllCarByCity(city: string): Promise<Car[]> {
