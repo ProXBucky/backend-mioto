@@ -3,7 +3,7 @@ import { IsDateString } from "class-validator";
 import { User } from "../user/user.entity";
 import { Car } from "../car/car.entity";
 import { Payment } from "../payment/payment.entity";
-
+import { Voucher } from "../voucher/voucher.entity";
 
 @Entity()
 export class Rent {
@@ -21,6 +21,10 @@ export class Rent {
     @Column()
     rentTime: number;
 
+    @OneToOne(() => Voucher, { nullable: true }) // Mối quan hệ tùy chọn
+    @JoinColumn({ name: 'voucherId' })
+    voucher: Voucher | null;
+
     @ManyToOne(() => User, user => user.rents)
     @JoinColumn({ name: 'userId' })
     user: User;
@@ -30,6 +34,6 @@ export class Rent {
     car: Car;
 
     @OneToOne(() => Payment, payment => payment.rent)
-    @JoinColumn({ name: 'payment' })
-    payment: Payment
+    @JoinColumn({ name: 'paymentId' })
+    payment: Payment;
 }

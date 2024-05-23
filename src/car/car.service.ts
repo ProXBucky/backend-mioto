@@ -69,7 +69,7 @@ export class CarService {
             newCar.district = body.district
             newCar.ward = body.ward
             newCar.streetAddress = body.streetAddress
-            newCar.status = "Đang duyệt"
+            newCar.status = "Approving"
             let carReponse = await this.carRepo.save(newCar)
             if (carReponse && carReponse.carId) {
                 try {

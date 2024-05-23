@@ -7,9 +7,6 @@ export class Payment {
     paymentId: number;
 
     @Column()
-    rentId: number;
-
-    @Column()
     paymentAmount: number;
 
     @Column({ type: 'date' })
@@ -19,6 +16,6 @@ export class Payment {
     paymentStatus: string;
 
     @OneToOne(() => Rent, rent => rent.payment)
-    @JoinColumn({ name: 'rentId' })
+    // @JoinColumn({ name: 'rentId' })
     rent: Rent;
 }

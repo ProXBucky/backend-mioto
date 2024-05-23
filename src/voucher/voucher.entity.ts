@@ -1,25 +1,33 @@
+import { Rent } from "../rent/rent.entity";
 import { User } from "../user/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Voucher {
     @PrimaryGeneratedColumn()
     voucherId: number;
 
+    @Column()
+    voucherCode: string;
+
     @Column('text')
     description: string;
 
     @Column()
-    userId: number;
+    status: string;
 
     @Column()
-    status: string;
+    type: string;
+
+    @Column()
+    discountPercent: number;
 
     @Column({ type: 'date' })
     expireDate: Date;
 
-    @Column()
-    discountPercent: number;
+    // @OneToOne(() => Rent, { nullable: true }) // Mối quan hệ tùy chọn
+    // @JoinColumn()
+    // rent: Rent | null;
 
     @ManyToOne(() => User, user => user.vouchers)
     @JoinColumn({ name: 'userId' })
