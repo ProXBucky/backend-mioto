@@ -19,7 +19,10 @@ export class Rent {
     rentEndDate: Date;
 
     @Column()
-    rentTime: number;
+    rentDays: number;
+
+    @Column()
+    rentStatus: string;
 
     @OneToOne(() => Voucher, { nullable: true }) // Mối quan hệ tùy chọn
     @JoinColumn({ name: 'voucherId' })
@@ -34,6 +37,5 @@ export class Rent {
     car: Car;
 
     @OneToOne(() => Payment, payment => payment.rent)
-    @JoinColumn({ name: 'paymentId' })
     payment: Payment;
 }

@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
     imports: [TypeOrmModule.forFeature([Voucher])],
     providers: [VoucherService],
-    controllers: [VoucherController]
+    controllers: [VoucherController],
+    exports: [VoucherService]
 })
 export class VoucherModule { }

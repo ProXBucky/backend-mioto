@@ -70,8 +70,14 @@ export class ReviewService {
         let allReviews = await this.reviewRepo.find({
             where: { car: { carId: carId } }
         })
-        if (!allReviews || allReviews.length == 0) {
-            throw new HttpException("No review", HttpStatus.NO_CONTENT)
+        if (!allReviews) {
+            throw new HttpException('Car is not extist', HttpStatus.NOT_FOUND)
+        }
+        if (allReviews.length == 0) {
+            return {
+                totalScoreReview: 0,
+                reviewCount: 0
+            }
         }
         let totalScore = 0
         allReviews.map(review => {

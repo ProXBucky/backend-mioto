@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Like, Not, Repository } from 'typeorm';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
 import { OwnerService } from '../owner/owner.service';
@@ -10,6 +10,8 @@ import { ImageService } from '../carImage/image.service';
 import { EditCarDTO } from './dto/EditCarDTO.dto';
 import { GetCarDTO } from './dto/GetCarDTO.dto';
 import { plainToInstance } from 'class-transformer';
+import { ReviewService } from '../review/review.service';
+import { RentService } from '../rent/rent.service';
 
 @Injectable()
 export class CarService {
@@ -19,7 +21,9 @@ export class CarService {
         private readonly ownerService: OwnerService,
         private readonly featureService: FeatureService,
         private readonly carHasFeatureService: CarHasFeatureService,
-        private readonly carImageService: ImageService
+        private readonly carImageService: ImageService,
+        private readonly reviewService: ReviewService,
+        private readonly rentService: RentService
     ) { }
 
     async getCarByCarId(carId: number): Promise<GetCarDTO> {
@@ -33,22 +37,85 @@ export class CarService {
         return plainToInstance(GetCarDTO, cars);
     }
 
-    async getAllCarByCity(city: string): Promise<Car[]> {
-        let cars = await this.carRepo.find({
-            where: { location: Like(`%${city}%`) },
-            relations: ['images'],
-        });
-        if (!cars) {
-            throw new HttpException('List car not found', HttpStatus.NOT_FOUND);
+    async statisticCar(carId: number): Promise<{ star: number, tripCount: number, reviewCount: number }> {
+        const tripCountPromise = await this.rentService.countTripByCarId(carId)
+        const allStarPromise = await this.reviewService.getReviewScore(carId)
+
+        const [tripCount, allStar] = await Promise.all([tripCountPromise, allStarPromise]);
+
+        return {
+            star: (allStar).totalScoreReview,
+            tripCount: (tripCount).tripCount,
+            reviewCount: (allStar).reviewCount
         }
-        cars = cars.map(car => {
-            if (car.images && car.images.length > 0) {
-                car.images = [car.images[0]];
-            }
-            return car;
-        })
-        return cars
     }
+
+    async getAllCarByCity(city: string, userId: number): Promise<Car[]> {
+        try {
+            let cars = []
+            if (userId !== 0) {
+                cars = await this.carRepo.find({
+                    relations: ['owners', 'owners.user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    where: {
+                        location: Like(`%${city}%`),
+                        owners: {
+                            user: {
+                                userId: Not(userId)
+                            }
+                        }
+                    }
+                });
+            }
+            else {
+                cars = await this.carRepo.find({
+                    relations: ['images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    where: {
+                        location: Like(`%${city}%`),
+                    }
+                });
+            }
+            if (!cars || cars.length === 0) {
+                return cars
+            }
+            cars = cars.map(async car => {
+                if (car.images && car.images.length > 0) {
+                    car.images = [car.images[0]];
+                }
+
+                let stats = await this.statisticCar(car.carId);
+                return {
+                    ...car,
+                    stats: {
+                        star: stats.star,
+                        tripCount: stats.tripCount,
+                        reviewCount: stats.reviewCount,
+                    }
+                };
+            });
+            return Promise.all(cars);
+        }
+        catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // async getAllCarByCity(city: string): Promise<Car[]> {
+    //     let cars = await this.carRepo.find({
+    //         where: { location: Like(`%${city}%`) },
+    //         relations: ['images'],
+    //     });
+    //     if (!cars) {
+    //         throw new HttpException('List car not found', HttpStatus.NOT_FOUND);
+    //     }
+    //     cars = cars.map(car => {
+    //         if (car.images && car.images.length > 0) {
+    //             car.images = [car.images[0]];
+    //         }
+    //         return car;
+    //     })
+    //     return cars
+    // }
 
 
     async registerNewCar(userId: number, body: RegisterNewCarDTO): Promise<Car> {
@@ -150,4 +217,7 @@ export class CarService {
     // async deleteCarByCarId(carId: number): Promise<Car> {
 
     // }
+
+
+
 }

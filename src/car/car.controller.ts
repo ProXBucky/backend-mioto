@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
 import { CarService } from './car.service';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
@@ -9,7 +9,7 @@ import { GetCarDTO } from './dto/GetCarDTO.dto';
 export class CarController {
     constructor(private readonly carService: CarService) { }
 
-    @Get("/:carId")
+    @Get("car-detail/:carId")
     getCarByCarId(@Param('carId') carId: number): Promise<GetCarDTO> {
         try {
             return this.carService.getCarByCarId(carId)
@@ -18,12 +18,16 @@ export class CarController {
         }
     }
 
-    @Get("/all/:city")
-    getAllCarByCity(@Param('city') city: string): Promise<Car[]> {
+    // 
+    @Get("/all-car-by-city")
+    async getAllCarByCity(@Query('city') city: string, @Query('userId') userId: number): Promise<Car[]> {
+        if (isNaN(userId)) {
+            throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
+        }
         try {
-            return this.carService.getAllCarByCity(city)
+            return await this.carService.getAllCarByCity(city, userId);
         } catch (e) {
-            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND)
+            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
         }
     }
 
@@ -56,5 +60,14 @@ export class CarController {
     //         throw new HttpException('Delete car fail', HttpStatus.NOT_FOUND)
     //     }
     // }
+
+    @Get("/statistic/:carId")
+    statisticCar(@Param('carId') carId: number): Promise<{ star: number, tripCount: number, reviewCount: number }> {
+        try {
+            return this.carService.statisticCar(carId)
+        } catch (e) {
+            throw new HttpException('Statistic car fail', HttpStatus.NOT_FOUND)
+        }
+    }
 
 }

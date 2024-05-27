@@ -36,8 +36,8 @@ export class Car {
     @Column()
     fuelType: string;
 
-    @Column({ nullable: true })
-    mortgage: number | null;
+    @Column({ default: 0 })
+    mortgage: number;
 
     @Column()
     pricePerDay: number;
@@ -60,9 +60,8 @@ export class Car {
     @Column()
     location: string;
 
-    @Column({ nullable: true })
-    @IsEnum(['Đang duyệt', 'Chưa cho thuê', 'Đã cho thuê'])
-    status: string | null;
+    @Column()
+    status: string;
 
     @OneToMany(() => Review, review => review.car)
     reviews: Review[];
