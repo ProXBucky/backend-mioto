@@ -16,4 +16,13 @@ export class OwnerController {
             throw new HttpException('Get car fail', HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
+
+    @Get('/approved/:userId')
+    getAllOwnApprovedByUserId(@Param('userId') userId: number): Promise<Car[]> {
+        try {
+            return this.carOwnerService.getAllOwnApprovedByUserId(userId)
+        } catch (e) {
+            throw new HttpException('Get car fail', HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 }

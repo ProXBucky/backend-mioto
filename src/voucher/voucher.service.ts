@@ -53,7 +53,17 @@ export class VoucherService {
         }
         voucher.status = "Used"
         return await this.voucherRepo.save(voucher)
+    }
 
+    async repayVoucher(voucherId: number): Promise<Voucher> {
+        let voucher = await this.voucherRepo.findOne({
+            where: { voucherId: voucherId }
+        })
+        if (!voucher) {
+            throw new HttpException('You havenot voucher with this id', HttpStatus.NO_CONTENT)
+        }
+        voucher.status = "NotUsed"
+        return await this.voucherRepo.save(voucher)
     }
 
 

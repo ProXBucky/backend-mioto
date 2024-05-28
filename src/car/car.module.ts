@@ -14,6 +14,6 @@ import { RentModule } from '../rent/rent.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Car]), OwnerModule, ImageModule, FeatureModule, CarHasFeatureModule, ReviewModule, RentModule],
   providers: [CarService],
-  controllers: [CarController]
+  controllers: [CarController],
 })
 export class CarModule { }

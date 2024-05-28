@@ -1,13 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rent } from './rent.entity';
-import { Repository } from 'typeorm';
+import { Like, Not, Repository } from 'typeorm';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
 import { Voucher } from '../voucher/voucher.entity';
 import { VoucherService } from '../voucher/voucher.service';
+
 
 @Injectable()
 export class RentService {
@@ -121,4 +122,79 @@ export class RentService {
             throw new HttpException('Error creating new rent', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async cancelRentByRentId(rentId: number): Promise<Rent> {
+        try {
+            let trip = await this.rentRepo.findOne({
+                where: { rentId: rentId },
+                relations: ['voucher']
+            });
+            if (!trip) {
+                throw new HttpException('Trip not found', HttpStatus.NO_CONTENT)
+            }
+            await this.voucherService.repayVoucher(trip.voucher.voucherId)
+            trip.rentStatus = 'cancel'
+            return await this.rentRepo.save(trip)
+        }
+        catch (error) {
+            console.error('Error cancel new rent:', error);
+            throw new HttpException('Error cancel new rent', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // async getAllTripByCity(city: string, userId: number): Promise<Car[]> {
+    //     try {
+    //         let trips = []
+    //         if (userId !== 0) {
+    //             trips = await this.rentRepo.find({
+    //                 relations: ['car', 'car.owners', 'car.owners.user', 'car.images'], // Load các mối quan hệ để sử dụng trong điều kiện
+    //                 where: {
+    //                     car: {
+    //                         location: Like(`%${city}%`),
+    //                         status: Not("Approving"),
+    //                         owners: {
+    //                             user: {
+    //                                 userId: Not(userId)
+    //                             }
+    //                         }
+    //                     },
+    //                 }
+    //             });
+    //         }
+    //         else {
+    //             trips = await this.rentRepo.find({
+    //                 relations: ['car.images'], // Load các mối quan hệ để sử dụng trong điều kiện
+    //                 where: {
+    //                     car: {
+    //                         location: Like(`%${city}%`),
+    //                         status: Not("Approving"),
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //         if (!trips || trips.length === 0) {
+    //             return trips
+    //         }
+    //         trips = trips.map(async trip => {
+    //             if (trip.car.images && trip.car.images.length > 0) {
+    //                 trip.car.images = [trip.car.images[0]];
+    //             }
+
+    //             // let stats = await this.carService.statisticCar(trip.car.carId)
+    //             return {
+    //                 car: trip.car,
+    //                 // stats: {
+    //                 //     star: stats.star,
+    //                 //     tripCount: stats.tripCount,
+    //                 //     reviewCount: stats.reviewCount,
+    //                 // }
+    //             };
+    //         });
+    //         return Promise.all(trips);
+    //     }
+    //     catch (e) {
+    //         console.log(e);
+    //         throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
 }

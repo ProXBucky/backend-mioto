@@ -3,7 +3,7 @@ import { CarOwner } from './owner.entity';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 @Injectable()
 export class OwnerService {
@@ -37,6 +37,22 @@ export class OwnerService {
         }
         return cars.map(carOwner => carOwner.car);
     }
+
+    async getAllOwnApprovedByUserId(userId: number): Promise<Car[]> {
+        let cars = await this.carOwnerRepo.find({
+            where: {
+                user: { userId: userId },
+                car: { status: Not("Approving") }
+            },
+            relations: ['car', 'car.images'],
+        });
+        if (cars.length <= 0) {
+            throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
+        }
+        return cars.map(carOwner => carOwner.car);
+    }
+
+
 
     async deleteOwnByCarId(carId: number): Promise<CarOwner> {
         let res = await this.carOwnerRepo.findOne({ where: { car: { carId: carId } } })

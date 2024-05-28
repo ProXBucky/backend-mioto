@@ -58,6 +58,7 @@ export class CarService {
                     relations: ['owners', 'owners.user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
+                        status: Not("Approving"),
                         owners: {
                             user: {
                                 userId: Not(userId)
@@ -71,6 +72,7 @@ export class CarService {
                     relations: ['images'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
+                        status: Not("Approving"),
                     }
                 });
             }
@@ -99,23 +101,6 @@ export class CarService {
             throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    // async getAllCarByCity(city: string): Promise<Car[]> {
-    //     let cars = await this.carRepo.find({
-    //         where: { location: Like(`%${city}%`) },
-    //         relations: ['images'],
-    //     });
-    //     if (!cars) {
-    //         throw new HttpException('List car not found', HttpStatus.NOT_FOUND);
-    //     }
-    //     cars = cars.map(car => {
-    //         if (car.images && car.images.length > 0) {
-    //             car.images = [car.images[0]];
-    //         }
-    //         return car;
-    //     })
-    //     return cars
-    // }
 
 
     async registerNewCar(userId: number, body: RegisterNewCarDTO): Promise<Car> {
@@ -217,6 +202,82 @@ export class CarService {
     // async deleteCarByCarId(carId: number): Promise<Car> {
 
     // }
+
+    convertToDate(dateString: string): Date {
+        const [day, month, year] = dateString.split('/').map(Number);
+        return new Date(year, month - 1, day); // Month is 0-based in JavaScript Date
+    }
+
+
+    async findAllCar(city: string, userId: number, beginDate: string, endDate: string): Promise<Car[]> {
+        try {
+            let cars: Car[] = [];
+
+            // Chuyển đổi chuỗi ngày thành đối tượng Date
+            const checkStartDate = this.convertToDate(beginDate);
+            const checkEndDate = this.convertToDate(endDate);
+
+            // Kiểm tra điều kiện userId và lấy danh sách xe tương ứng
+            if (userId !== 0) {
+                cars = await this.carRepo.find({
+                    relations: ['owners', 'owners.user', 'images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    where: {
+                        location: Like(`%${city}%`),
+                        status: Not("Approving"),
+                        owners: {
+                            user: {
+                                userId: Not(userId)
+                            }
+                        }
+                    }
+                });
+            } else {
+                cars = await this.carRepo.find({
+                    relations: ['images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    where: {
+                        location: Like(`%${city}%`),
+                        status: Not("Approving"),
+                    }
+                });
+            }
+
+            if (!cars || cars.length === 0) {
+                return cars;
+            }
+
+            // Lọc các xe đã bị thuê trong khoảng thời gian yêu cầu
+            cars = cars.filter(car => {
+                const overlappingRents = car.rents.filter(rent =>
+                    rent.rentStatus !== "completed" && rent.rentStatus !== "cancel" && // Lọc các trạng thái không ảnh hưởng
+                    (new Date(rent.rentBeginDate) < checkEndDate && new Date(rent.rentEndDate) > checkStartDate) // Kiểm tra trùng lặp thời gian
+                );
+                return overlappingRents.length === 0;
+            });
+
+            // Chỉnh sửa danh sách ảnh và thêm thống kê cho mỗi xe
+            const carsWithStats = cars.map(async car => {
+                if (car.images && car.images.length > 0) {
+                    car.images = [car.images[0]]; // Chỉ lấy ảnh đầu tiên
+                }
+
+                const stats = await this.statisticCar(car.carId);
+                return {
+                    ...car,
+                    stats: {
+                        star: stats.star,
+                        tripCount: stats.tripCount,
+                        reviewCount: stats.reviewCount,
+                    }
+                };
+            });
+
+            return Promise.all(carsWithStats);
+        } catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 
 
