@@ -44,6 +44,15 @@ export class RentController {
         }
     }
 
+    @Get("/check-status")
+    checkStatusRent(@Query("carId") carId: number, @Query("beginDate") beginDate: string, @Query("endDate") endDate: string): Promise<boolean> {
+        try {
+            return this.rentService.checkStatusRent(carId, beginDate, endDate)
+        } catch (e) {
+            throw new HttpException('Cancel trip failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
     // @Get("/all-trip-by-city")
     // async getAllTripByCity(@Query('city') city: string, @Query('userId') userId: number): Promise<Car[]> {
     //     if (isNaN(userId)) {

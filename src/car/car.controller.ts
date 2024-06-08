@@ -18,7 +18,7 @@ export class CarController {
         }
     }
 
-    // 
+
     @Get("/all-car-by-city")
     async getAllCarByCity(@Query('city') city: string, @Query('userId') userId: number): Promise<Car[]> {
         if (isNaN(userId)) {
@@ -62,7 +62,7 @@ export class CarController {
     // }
 
     @Get("/statistic/:carId")
-    statisticCar(@Param('carId') carId: number): Promise<{ star: number, tripCount: number, reviewCount: number }> {
+    async statisticCar(@Param('carId') carId: number): Promise<{ star: number, tripCount: number, reviewCount: number }> {
         try {
             return this.carService.statisticCar(carId)
         } catch (e) {

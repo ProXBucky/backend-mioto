@@ -142,6 +142,34 @@ export class RentService {
         }
     }
 
+    convertToDate(dateString: string): Date {
+        const [day, month, year] = dateString.split('/').map(Number);
+        return new Date(year, month - 1, day); // Month is 0-based in JavaScript Date
+    }
+
+    async checkStatusRent(carId: number, beginDate: string, endDate: string): Promise<boolean> {
+        const rents = await this.rentRepo.find({
+            where: { car: { carId: carId } },
+        });
+
+        const checkStartDate = this.convertToDate(beginDate);
+        const checkEndDate = this.convertToDate(endDate);
+
+        if (!rents || rents.length === 0) {
+            return true; // Không có lịch thuê nào, có thể đặt
+        }
+
+        // Kiểm tra trùng lặp thời gian
+        const isOverlap = rents.some(rent => {
+            return rent.rentStatus !== 'completed' &&
+                rent.rentStatus !== 'cancel' &&
+                new Date(rent.rentBeginDate) < checkEndDate &&
+                new Date(rent.rentEndDate) > checkStartDate;
+        });
+
+        return !isOverlap; // Trả về true nếu không trùng lặp, false nếu trùng lặp
+    }
+
     // async getAllTripByCity(city: string, userId: number): Promise<Car[]> {
     //     try {
     //         let trips = []

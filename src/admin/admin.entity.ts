@@ -8,23 +8,20 @@ export class Admin {
     adminId: number;
 
     @Column()
-    @IsString()
     fullname: string;
 
     @Column()
-    @IsString()
     phone: string;
 
     @Column()
-    @IsString()
     username: string;
 
     @Column()
-    @IsString()
-    @Exclude()
     password: string;
 
     @Column()
-    @IsEmail()
     email: string;
+
+    @Column()
+    role: string
 }

@@ -28,4 +28,24 @@ export class AuthController {
         await this.authService.invalidateToken(token.token);
         return { message: 'Logged out successfully' };
     }
+
+    @Post('/login-admin')
+    async loginAdmin(@Body() credentials: LoginUserDTO) {
+        const admin = await this.authService.validateAdmin(credentials.username, credentials.password);
+        if (!admin) {
+            throw new HttpException('Admin not found', HttpStatus.NOT_FOUND);
+        }
+        const token = await this.authService.createToken({ fullname: admin.fullname, userId: admin.adminId, role: admin.role });
+        return {
+            token,
+            fullname: admin.fullname,
+            adminId: admin.adminId,
+        };
+    }
+
+    @Post('/logout-admin')
+    async logoutAdmin(@Body() token: { token: string }) {
+        await this.authService.invalidateToken(token.token);
+        return { message: 'Logged out successfully' };
+    }
 }

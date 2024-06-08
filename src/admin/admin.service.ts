@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateAdminDTO } from './dto/UpdateAdminDTO.dto';
 import { plainToClass } from 'class-transformer';
+import { GetAdminDTO } from './dto/GetAdminDTO.dto';
 
 @Injectable()
 export class AdminService {
@@ -28,6 +29,7 @@ export class AdminService {
         newAdmin.fullname = data.fullname
         newAdmin.phone = data.phone
         newAdmin.email = data.email
+        newAdmin.role = data.role
         let adminn = await this.adminRepo.save(newAdmin)
         return plainToClass(Admin, adminn)
     }
@@ -76,6 +78,18 @@ export class AdminService {
             throw new HttpException('Admin not found', HttpStatus.BAD_REQUEST);
         }
         return await this.adminRepo.remove(user);
+    }
 
+    async findOneByUsernameOrEmail(usernameOrEmail: string): Promise<GetAdminDTO> {
+        const adminFinded = await this.adminRepo.findOne({
+            where: [
+                { username: usernameOrEmail },
+                { email: usernameOrEmail }
+            ]
+        });
+        if (!adminFinded) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        return plainToClass(GetAdminDTO, adminFinded);
     }
 }

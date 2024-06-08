@@ -4,11 +4,15 @@ import { UserService } from '../user/user.service';
 import * as argon2 from "argon2"
 import { GetUserDTO } from '../user/dto/GetUserDTO.dto';
 import { plainToClass } from 'class-transformer';
+import { GetAdminDTO } from '../admin/dto/GetAdminDTO.dto';
+import { AdminService } from '../admin/admin.service';
 
 @Injectable()
 export class AuthService {
     constructor(private readonly jwtService: JwtService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly adminService: AdminService
+
     ) { }
 
     async validateUser(username: string, password: string): Promise<GetUserDTO> {
@@ -21,6 +25,18 @@ export class AuthService {
             throw new HttpException('Password is wrong', HttpStatus.CONFLICT)
         }
         return plainToClass(GetUserDTO, user)
+    }
+
+    async validateAdmin(username: string, password: string): Promise<GetAdminDTO> {
+        let admin = await this.adminService.findOneByUsernameOrEmail(username)
+        if (!admin) {
+            throw new HttpException('Admin not found', HttpStatus.NOT_FOUND)
+        }
+        let checkPassword = await argon2.verify(admin.password, password);
+        if (!checkPassword) {
+            throw new HttpException('Password is wrong', HttpStatus.CONFLICT)
+        }
+        return admin
     }
 
     async createToken(payload: any): Promise<string> {
