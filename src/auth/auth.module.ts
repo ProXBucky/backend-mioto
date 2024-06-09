@@ -6,6 +6,8 @@ import { SECRET } from '../config';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AdminModule } from '../admin/admin.module';
+// import { APP_GUARD } from '@nestjs/core';
+// import { RolesGuard } from './roles.guard';
 
 @Module({
     imports: [

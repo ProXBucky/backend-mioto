@@ -14,7 +14,7 @@ export class AuthController {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
         // Xác thực thông tin đăng nhập và tạo token JWT
-        const token = await this.authService.createToken({ fullname: user.fullname, userId: user.userId });
+        const token = await this.authService.createToken({ userId: user.userId, username: user.username });
         return {
             token,
             fullname: user.fullname,
@@ -35,11 +35,12 @@ export class AuthController {
         if (!admin) {
             throw new HttpException('Admin not found', HttpStatus.NOT_FOUND);
         }
-        const token = await this.authService.createToken({ fullname: admin.fullname, userId: admin.adminId, role: admin.role });
+        const token = await this.authService.createToken({ userId: admin.adminId, username: admin.username, role: admin.role });
         return {
             token,
-            fullname: admin.fullname,
             adminId: admin.adminId,
+            fullname: admin.fullname,
+            role: admin.role
         };
     }
 

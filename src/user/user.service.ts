@@ -120,5 +120,46 @@ export class UserService {
         return plainToClass(GetUserDTO, userFinded);
     }
 
+    async changePasswordByAdmin(userId: number, data: string): Promise<User> {
+        console.log('service1', userId, data)
+        const user = await this.userRepo.findOne({ where: { userId: userId } });
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        const hashedNewPassword = await argon2.hash(data);
+        user.password = hashedNewPassword
+        console.log('user', user)
+        return await this.userRepo.save(user)
+    }
+
+    async createNewUserByAdmin(data: User): Promise<User> {
+        let checkUsername = await this.userRepo.findOne({ where: { username: data.username } })
+        let checkEmail = await this.userRepo.findOne({ where: { email: data.email } })
+        if (checkUsername) {
+            throw new HttpException('Username is exist', HttpStatus.CONFLICT)
+        }
+        if (checkEmail) {
+            throw new HttpException('Email is exist', HttpStatus.CONFLICT)
+        }
+        let newUser = new User
+        newUser.username = data.username
+        newUser.password = data.password
+        newUser.fullname = data.fullname
+        newUser.phone = data.phone
+        newUser.email = data.email
+        newUser.gender = data.gender
+        newUser.dob = data.dob
+        newUser.joinDate = new Date();
+        if (data.avatarImage) {
+            let res = await this.cloudinaryService.uploadImage(data.avatarImage)
+            if (res && res.public_id && res.secure_url) {
+                newUser.avatarImage = res.secure_url
+                newUser.avatarImageID = res.public_id
+            }
+        }
+        return await this.userRepo.save(newUser)
+
+    }
+
 
 }

@@ -17,16 +17,13 @@ export class User {
     userId: number;
 
     @Column()
-    @IsNotEmpty()
     @IsEmail()
     email: string;
 
     @Column()
-    @IsNotEmpty()
     fullname: string;
 
     @Column()
-    @IsNotEmpty()
     phone: string;
 
     @Column({ nullable: true })
@@ -36,12 +33,9 @@ export class User {
     avatarImageID: string;
 
     @Column()
-    @IsNotEmpty()
     username: string;
 
     @Column()
-    @IsNotEmpty()
-    @Exclude()
     password: string;
 
     @BeforeInsert()
@@ -50,7 +44,6 @@ export class User {
     }
 
     @Column({ type: 'date' })
-    @IsDateString()
     joinDate: Date;
 
     @Column({ nullable: true })
@@ -58,8 +51,6 @@ export class User {
     gender: string | null;
 
     @Column({ nullable: true, type: 'date' })
-    @IsOptional()
-    @IsDateString()
     dob: Date;
 
     @OneToMany(() => UserAddress, userAddress => userAddress.user)
