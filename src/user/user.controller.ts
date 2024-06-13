@@ -57,7 +57,7 @@ export class UserController {
 
     @Delete("/:userId")
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('staff', 'admin')
+    @Roles('Staff', 'Admin')
     deleteUser(@Param('userId') id: number): Promise<User> {
         try {
             return this.userService.deleteUser(id)
@@ -80,7 +80,7 @@ export class UserController {
 
     @Put("/admin-role/change-password")
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('staff', 'admin')
+    @Roles('Staff', 'Admin')
     changePasswordByAdmin(@Body() data: { userId: number, password: string }): Promise<User> {
         try {
             return this.userService.changePasswordByAdmin(data.userId, data.password)
@@ -89,9 +89,9 @@ export class UserController {
         }
     }
 
-    @Put("/admin-role/create-new-user")
+    @Post("/admin-role/create-new-user")
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('staff', 'admin')
+    @Roles('Staff', 'Admin')
     @UsePipes(new ValidationPipe())
     createNewUserByAdmin(@Body() data: User): Promise<User> {
         try {

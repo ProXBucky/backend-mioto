@@ -1,8 +1,12 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDTO } from './dto/CreateAdminDto.dto';
 import { Admin } from './admin.entity';
 import { UpdateAdminDTO } from './dto/UpdateAdminDTO.dto';
+import { GetAdminDTO } from './dto/GetAdminDTO.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('admin')
 export class AdminController {
@@ -10,7 +14,9 @@ export class AdminController {
 
     @Post()
     @UsePipes(new ValidationPipe())
-    createNewAdmin(@Body() data: CreateAdminDTO): Promise<Admin> {
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Admin')
+    createNewAdmin(@Body() data: Admin): Promise<Admin> {
         try {
             return this.adminService.createNewAdmin(data)
         } catch (e) {
@@ -20,7 +26,9 @@ export class AdminController {
     }
 
     @Get()
-    findAll(): Promise<Admin[]> {
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    findAll(): Promise<GetAdminDTO[]> {
         try {
             return this.adminService.findAll()
         } catch (e) {
@@ -30,7 +38,9 @@ export class AdminController {
     }
 
     @Get("/:adminId")
-    findOneByAdminId(@Param('adminId') id: number): Promise<Admin> {
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    findOneByAdminId(@Param('adminId') id: number): Promise<GetAdminDTO> {
         try {
             return this.adminService.findOneByAdminId(id)
         } catch (e) {
@@ -40,6 +50,8 @@ export class AdminController {
     }
 
     @Put("/:adminId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Admin')
     editAdmin(@Param('adminId') id: number, @Body() updateAdmin: UpdateAdminDTO): Promise<Admin> {
         try {
             return this.adminService.editAdmin(id, updateAdmin)
@@ -50,12 +62,25 @@ export class AdminController {
     }
 
     @Delete("/:adminId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Admin')
     deleteAdmin(@Param('adminId') id: number): Promise<Admin> {
         try {
             return this.adminService.deleteAdmin(id)
         } catch (e) {
             console.log(e)
             throw new HttpException('Delete admin fail', HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @Put("/action/change-password")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Admin')
+    changePasswordByAdmin(@Body() data: { userId: number, password: string }): Promise<Admin> {
+        try {
+            return this.adminService.changePasswordByAdmin(data.userId, data.password)
+        } catch (e) {
+            throw new HttpException('Change password fail', HttpStatus.BAD_REQUEST)
         }
     }
 }

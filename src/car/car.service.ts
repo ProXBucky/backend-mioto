@@ -69,7 +69,7 @@ export class CarService {
             }
             else {
                 cars = await this.carRepo.find({
-                    relations: ['images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
@@ -278,4 +278,49 @@ export class CarService {
         }
     }
 
+    async getAllCar(): Promise<Car[]> {
+        try {
+            let cars = []
+            cars = await this.carRepo.find({
+                relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
+            });
+
+            if (!cars || cars.length === 0) {
+                return cars
+            }
+            cars = cars.map(async car => {
+                if (car.images && car.images.length > 0) {
+                    car.images = [car.images[0]];
+                }
+
+                let stats = await this.statisticCar(car.carId);
+                return {
+                    ...car,
+                    stats: {
+                        star: stats.star,
+                        tripCount: stats.tripCount,
+                        reviewCount: stats.reviewCount,
+                    }
+                };
+            });
+            return Promise.all(cars);
+
+        }
+        catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    async confirmCar(carId: number): Promise<Car> {
+        let car = await this.carRepo.findOne({
+            where: { carId: carId }
+        })
+        if (!car) {
+            throw new HttpException("Car not found", HttpStatus.NOT_FOUND)
+        }
+        car.status = "Approved"
+        return await this.carRepo.save(car)
+    }
 }

@@ -8,7 +8,6 @@ import { UpdateUserDTO } from './dto/UpdateUserDTO.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ChangePasswordDTO } from './dto/ChangePasswordDTO.dto';
 import * as argon2 from 'argon2';
-import { SECRET } from 'src/config';
 import { GetUserDTO } from './dto/GetUserDTO.dto';
 @Injectable()
 export class UserService {
@@ -128,7 +127,6 @@ export class UserService {
         }
         const hashedNewPassword = await argon2.hash(data);
         user.password = hashedNewPassword
-        console.log('user', user)
         return await this.userRepo.save(user)
     }
 

@@ -1,5 +1,5 @@
 // create-user.dto.ts
-import { Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 export class GetAdminDTO {
 
@@ -12,7 +12,7 @@ export class GetAdminDTO {
     @Expose()
     username: string;
 
-    @Expose()
+    @Exclude()
     password: string;
 
     @Expose()

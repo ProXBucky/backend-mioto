@@ -6,6 +6,7 @@ import { GetUserDTO } from '../user/dto/GetUserDTO.dto';
 import { plainToClass } from 'class-transformer';
 import { GetAdminDTO } from '../admin/dto/GetAdminDTO.dto';
 import { AdminService } from '../admin/admin.service';
+import { Admin } from '../admin/admin.entity';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
         return plainToClass(GetUserDTO, user)
     }
 
-    async validateAdmin(username: string, password: string): Promise<GetAdminDTO> {
+    async validateAdmin(username: string, password: string): Promise<Admin> {
         let admin = await this.adminService.findOneByUsernameOrEmail(username)
         if (!admin) {
             throw new HttpException('Admin not found', HttpStatus.NOT_FOUND)

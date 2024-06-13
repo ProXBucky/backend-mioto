@@ -23,6 +23,7 @@ export class Admin {
     email: string;
 
     @Column()
+    @IsEnum(['Staff', 'Admin'])
     role: string
 
     @Column({ nullable: true })

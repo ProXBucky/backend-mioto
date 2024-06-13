@@ -1,9 +1,12 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CarService } from './car.service';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
 import { EditCarDTO } from './dto/EditCarDTO.dto';
 import { GetCarDTO } from './dto/GetCarDTO.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('car')
 export class CarController {
@@ -77,6 +80,26 @@ export class CarController {
         }
         try {
             return await this.carService.findAllCar(city, userId, beginDate, endDate);
+        } catch (e) {
+            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Get("/all-car")
+    async getAllCar(): Promise<Car[]> {
+        try {
+            return await this.carService.getAllCar();
+        } catch (e) {
+            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Put("/confirm-car/:carId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    async confirmCar(@Param("carId") carId: number): Promise<Car> {
+        try {
+            return await this.carService.confirmCar(carId);
         } catch (e) {
             throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
         }

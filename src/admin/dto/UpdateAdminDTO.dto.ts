@@ -3,6 +3,8 @@ export class UpdateAdminDTO {
     email: string;
     fullname: string;
     phone: string;
-    username: string;
-    password: string;
+    avatarImage: string;
+    gender: string;
+    dob: Date;
+    role: string;
 }
