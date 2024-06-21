@@ -3,6 +3,12 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class EditCarDTO {
 
+    description: string
+    modelYear: number
+    transmission: string
+    fuelType: string
+    capacity: number
+
     @IsNotEmpty()
     plateNumber: string;
 

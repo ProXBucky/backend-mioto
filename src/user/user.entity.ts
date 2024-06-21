@@ -10,6 +10,7 @@ import { Voucher } from "../voucher/voucher.entity";
 import { BeforeInsert, Column, Entity, IsNull, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import * as argon2 from "argon2"
 import { Exclude } from "class-transformer";
+import { VoucherOwner } from "../voucher/voucherOwner.entity";
 
 @Entity()
 export class User {
@@ -75,6 +76,6 @@ export class User {
     @OneToMany(() => Rent, rent => rent.user)
     rents: Rent[];
 
-    @OneToMany(() => Voucher, voucher => voucher.user)
-    vouchers: Voucher[];
+    @OneToMany(() => VoucherOwner, voucherOwner => voucherOwner.user)
+    voucherOwners: VoucherOwner[];
 }

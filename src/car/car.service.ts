@@ -102,6 +102,49 @@ export class CarService {
         }
     }
 
+    async getAllCarByCityByAdmin(city: string): Promise<Car[]> {
+        try {
+            let cars = []
+            if (city === "tatCa") {
+                cars = await this.carRepo.find({
+                    relations: ['owners', 'owners.user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                });
+            }
+            else {
+                cars = await this.carRepo.find({
+                    relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    where: {
+                        location: Like(`%${city}%`),
+                    }
+                });
+            }
+            if (!cars || cars.length === 0) {
+                return cars
+            }
+            cars = cars.map(async car => {
+                if (car.images && car.images.length > 0) {
+                    car.images = [car.images[0]];
+                }
+
+                let stats = await this.statisticCar(car.carId);
+                return {
+                    ...car,
+                    stats: {
+                        star: stats.star,
+                        tripCount: stats.tripCount,
+                        reviewCount: stats.reviewCount,
+                    }
+                };
+            });
+            return Promise.all(cars);
+        }
+        catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
     async registerNewCar(userId: number, body: RegisterNewCarDTO): Promise<Car> {
         try {
@@ -169,6 +212,72 @@ export class CarService {
         }
     }
 
+    async registerNewCarByAdmin(userId: number, body: RegisterNewCarDTO): Promise<Car> {
+        try {
+            let newCar = new Car
+            newCar.brand = body.brand
+            newCar.model = body.model
+            newCar.modelYear = body.modelYear
+            newCar.capacity = body.capacity
+            newCar.plateNumber = body.plateNumber
+            newCar.transmission = body.transmission
+            newCar.fuelType = body.fuelType
+            newCar.mortgage = body.mortgage
+            newCar.pricePerDay = body.pricePerDay
+            newCar.description = body.description
+            newCar.city = body.city
+            newCar.location = body.location
+            newCar.district = body.district
+            newCar.ward = body.ward
+            newCar.streetAddress = body.streetAddress
+            newCar.status = "Approved"
+            let carReponse = await this.carRepo.save(newCar)
+            if (carReponse && carReponse.carId) {
+                try {
+                    let res = await this.ownerService.createOwnNewCar(userId, carReponse.carId)
+                    if (!res) {
+                        throw new HttpException('Create Own Car Fail', HttpStatus.BAD_REQUEST)
+                    }
+                } catch (err) {
+                    console.log(err)
+                }
+            }
+
+            if (carReponse && carReponse.carId) {
+                try {
+                    let featureIdArray = await this.featureService.convertArrFeatureCodetoArrFeatureId(body.arrayFeatureCode)
+                    if (featureIdArray && featureIdArray.length > 0) {
+                        try {
+                            let res = await this.carHasFeatureService.createCarHaveFeature(carReponse.carId, featureIdArray)
+                            if (!res) {
+                                throw new HttpException('Create feature car Fail', HttpStatus.BAD_REQUEST)
+                            }
+                        } catch (err) {
+                            console.log(err)
+                        }
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            }
+
+            if (carReponse && carReponse.carId) {
+                try {
+                    let res = await this.carImageService.postMultiImageCar(carReponse.carId, body.arrayImageCar)
+                    if (!res) {
+                        throw new HttpException('Create multi image car Fail', HttpStatus.BAD_REQUEST)
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            }
+
+            return newCar
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     async editInformationCar(carId: number, body: EditCarDTO): Promise<Car> {
         try {
             let carEdit = await this.carRepo.findOne({ where: { carId: carId } })
@@ -185,6 +294,40 @@ export class CarService {
                     console.log('4', e)
                 }
             }
+            carEdit.plateNumber = body.plateNumber
+            carEdit.mortgage = body.mortgage
+            carEdit.pricePerDay = body.pricePerDay
+            carEdit.streetAddress = body.streetAddress
+            carEdit.ward = body.ward
+            carEdit.district = body.district
+            carEdit.city = body.city
+            carEdit.location = body.location
+            return await this.carRepo.save(carEdit)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async editInformationCarByAdmin(carId: number, body: EditCarDTO): Promise<Car> {
+        try {
+            let carEdit = await this.carRepo.findOne({ where: { carId: carId } })
+            if (!carEdit) {
+                throw new HttpException('This car is not found', HttpStatus.NOT_FOUND)
+            }
+            if (body.arrayImageCar && body.arrayImageCar.length > 0) {
+                try {
+                    // Xoa cac anh cu
+                    await this.carImageService.deleteAllCarImageByCarId(carId)
+                    //Them cac anh moi
+                    await this.carImageService.postMultiImageCar(carId, body.arrayImageCar)
+                } catch (e) {
+                    console.log('4', e)
+                }
+            }
+            carEdit.description = body.description
+            carEdit.transmission = body.transmission
+            carEdit.modelYear = body.modelYear
+            carEdit.capacity = body.capacity
             carEdit.plateNumber = body.plateNumber
             carEdit.mortgage = body.mortgage
             carEdit.pricePerDay = body.pricePerDay

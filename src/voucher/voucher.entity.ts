@@ -1,6 +1,7 @@
 import { Rent } from "../rent/rent.entity";
 import { User } from "../user/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { VoucherOwner } from "./voucherOwner.entity";
 
 @Entity()
 export class Voucher {
@@ -14,9 +15,6 @@ export class Voucher {
     description: string;
 
     @Column()
-    status: string;
-
-    @Column()
     type: string;
 
     @Column()
@@ -25,11 +23,6 @@ export class Voucher {
     @Column({ type: 'date' })
     expireDate: Date;
 
-    // @OneToOne(() => Rent, { nullable: true }) // Mối quan hệ tùy chọn
-    // @JoinColumn()
-    // rent: Rent | null;
-
-    @ManyToOne(() => User, user => user.vouchers)
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @OneToMany(() => VoucherOwner, voucherOwner => voucherOwner.voucher)
+    voucherOwners: VoucherOwner[];
 }

@@ -40,7 +40,8 @@ export class AuthController {
             token,
             adminId: admin.adminId,
             fullname: admin.fullname,
-            role: admin.role
+            role: admin.role,
+            avatar: admin.avatarImage
         };
     }
 

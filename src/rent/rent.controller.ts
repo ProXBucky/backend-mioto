@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { Rent } from './rent.entity';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { RentService } from './rent.service';
-import { Car } from '../car/car.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('rent')
 export class RentController {
@@ -53,15 +55,15 @@ export class RentController {
         }
     }
 
-    // @Get("/all-trip-by-city")
-    // async getAllTripByCity(@Query('city') city: string, @Query('userId') userId: number): Promise<Car[]> {
-    //     if (isNaN(userId)) {
-    //         throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
-    //     }
-    //     try {
-    //         return await this.rentService.getAllTripByCity(city, userId);
-    //     } catch (e) {
-    //         throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
-    //     }
-    // }
+    @Get("/all-trip-pending-by-city/:city")
+    // @UseGuards(JwtAuthGuard, RolesGuard)
+    // @Roles("Admin", "Staff")
+    async getAllTripPendingByCity(@Param('city') city: string): Promise<Rent[]> {
+        try {
+            return await this.rentService.getAllTripPendingByCity(city);
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
+        }
+    }
 }

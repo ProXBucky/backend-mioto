@@ -17,7 +17,4 @@ export class CreateNewVoucherDTO {
 
     @IsNotEmpty()
     expireDate: Date;
-
-    @IsNotEmpty()
-    userId: number;
 }

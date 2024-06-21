@@ -51,14 +51,40 @@ export class ReviewService {
         });
     }
 
+    async deleteReviewById(reviewId: number): Promise<Review> {
+        let review = await this.reviewRepo.findOne({
+            where: { reviewId: reviewId }
+        })
+        if (!review) {
+            throw new HttpException("No review in DB", HttpStatus.NO_CONTENT)
+        }
+        return await this.reviewRepo.remove(review)
+    }
+
 
     async getAllReviewByCity(cityCode: string): Promise<ReviewCarNotPasswordDTO[]> {
-        let allReviews = await this.reviewRepo.find({
-            where: { location: cityCode },
-            relations: ['user']
-        })
-        if (!allReviews || allReviews.length == 0) {
-            throw new HttpException("No review", HttpStatus.NO_CONTENT)
+        let allReviews = []
+        if (cityCode === "tatCa") {
+            allReviews = await this.reviewRepo.find({
+                order: {
+                    reviewDate: 'DESC'
+                },
+                relations: ['user']
+            })
+            if (!allReviews || allReviews.length == 0) {
+                throw new HttpException("No review", HttpStatus.NO_CONTENT)
+            }
+        } else {
+            allReviews = await this.reviewRepo.find({
+                where: { location: cityCode },
+                order: {
+                    reviewDate: 'DESC'
+                },
+                relations: ['user']
+            })
+            if (!allReviews || allReviews.length == 0) {
+                throw new HttpException("No review", HttpStatus.NO_CONTENT)
+            }
         }
         return allReviews.map(review => {
             const reviewDto = plainToInstance(ReviewCarNotPasswordDTO, review);

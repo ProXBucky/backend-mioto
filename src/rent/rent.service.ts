@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rent } from './rent.entity';
-import { Like, Not, Repository } from 'typeorm';
+import { In, Like, Not, Repository } from 'typeorm';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
@@ -170,59 +170,53 @@ export class RentService {
         return !isOverlap; // Trả về true nếu không trùng lặp, false nếu trùng lặp
     }
 
-    // async getAllTripByCity(city: string, userId: number): Promise<Car[]> {
-    //     try {
-    //         let trips = []
-    //         if (userId !== 0) {
-    //             trips = await this.rentRepo.find({
-    //                 relations: ['car', 'car.owners', 'car.owners.user', 'car.images'], // Load các mối quan hệ để sử dụng trong điều kiện
-    //                 where: {
-    //                     car: {
-    //                         location: Like(`%${city}%`),
-    //                         status: Not("Approving"),
-    //                         owners: {
-    //                             user: {
-    //                                 userId: Not(userId)
-    //                             }
-    //                         }
-    //                     },
-    //                 }
-    //             });
-    //         }
-    //         else {
-    //             trips = await this.rentRepo.find({
-    //                 relations: ['car.images'], // Load các mối quan hệ để sử dụng trong điều kiện
-    //                 where: {
-    //                     car: {
-    //                         location: Like(`%${city}%`),
-    //                         status: Not("Approving"),
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //         if (!trips || trips.length === 0) {
-    //             return trips
-    //         }
-    //         trips = trips.map(async trip => {
-    //             if (trip.car.images && trip.car.images.length > 0) {
-    //                 trip.car.images = [trip.car.images[0]];
-    //             }
-
-    //             // let stats = await this.carService.statisticCar(trip.car.carId)
-    //             return {
-    //                 car: trip.car,
-    //                 // stats: {
-    //                 //     star: stats.star,
-    //                 //     tripCount: stats.tripCount,
-    //                 //     reviewCount: stats.reviewCount,
-    //                 // }
-    //             };
-    //         });
-    //         return Promise.all(trips);
-    //     }
-    //     catch (e) {
-    //         console.log(e);
-    //         throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
-    //     }
-    // }
+    async getAllTripPendingByCity(city: string): Promise<Rent[]> {
+        try {
+            let trips = []
+            if (city === "tatCa") {
+                trips = await this.rentRepo.find({
+                    where: {
+                        rentStatus: Not(In(['cancel', 'finish']))
+                    },
+                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment'],
+                });
+            }
+            else {
+                trips = await this.rentRepo.find({
+                    where: {
+                        car: {
+                            location: Like(`%${city}%`)
+                        },
+                        rentStatus: Not(In(['cancel', 'finish']))
+                    },
+                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment'],
+                });
+            }
+            if (!trips || trips.length === 0) {
+                return trips
+            }
+            trips = trips.map(async trip => {
+                if (trip.car.images && trip.car.images.length > 0) {
+                    trip.car.images = [trip.car.images[0]];
+                }
+                delete trip.user.password
+                delete trip.car.owners.user.password
+                return {
+                    rentId: trip.rentId,
+                    rentBeginDate: trip.rentBeginDate,
+                    rentEndDate: trip.rentEndDate,
+                    rentDays: trip.rentDays,
+                    rentStatus: trip.rentStatus,
+                    user: trip.user,
+                    car: trip.car,
+                    payment: trip.payment,
+                };
+            });
+            return Promise.all(trips);
+        }
+        catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -34,21 +34,57 @@ export class CarController {
         }
     }
 
+    @Get("/all-car-by-city-by-admin/:city")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Admin", "Staff")
+    async getAllCarByCityByAdmin(@Param('city') city: string): Promise<Car[]> {
+        try {
+            return await this.carService.getAllCarByCityByAdmin(city);
+        } catch (e) {
+            throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+
     @Post("/register/:userId")
+    @UseGuards(JwtAuthGuard)
     registerNewCar(@Param('userId') userId: number, @Body() body: RegisterNewCarDTO): Promise<Car> {
         try {
-            console.log('-1')
             return this.carService.registerNewCar(userId, body)
         } catch (e) {
-            console.log('0', e)
+            throw new HttpException('Register car fail', HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @Post("/register-by-admin/:userId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    registerNewCarByAdmin(@Param('userId') userId: number, @Body() body: RegisterNewCarDTO): Promise<Car> {
+        try {
+            return this.carService.registerNewCarByAdmin(userId, body)
+        } catch (e) {
             throw new HttpException('Register car fail', HttpStatus.NOT_FOUND)
         }
     }
 
     @Put("/edit/:carId")
+    @UseGuards(JwtAuthGuard)
     editInformationCar(@Param('carId') carId: number, @Body() body: EditCarDTO): Promise<Car> {
         try {
             return this.carService.editInformationCar(carId, body)
+        } catch (e) {
+            console.log('0', e)
+            throw new HttpException('Edit car fail', HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @Put("/edit-by-admin/:carId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    editInformationCarByAdmin(@Param('carId') carId: number, @Body() body: EditCarDTO): Promise<Car> {
+        try {
+            return this.carService.editInformationCarByAdmin(carId, body)
         } catch (e) {
             console.log('0', e)
             throw new HttpException('Edit car fail', HttpStatus.NOT_FOUND)

@@ -1,8 +1,11 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { Review } from './review.entity';
 import { ReviewCarDTO } from './dto/reviewCarDTO.dto';
 import { ReviewCarNotPasswordDTO } from './dto/ReviewCarNotPasswordDTO.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('review')
 export class ReviewController {
@@ -23,6 +26,17 @@ export class ReviewController {
             return this.reviewService.getAllReviewOfCar(carId)
         } catch (e) {
             throw new HttpException('Get all review of car failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @Delete("/:reviewId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Staff", "Admin")
+    deleteReviewById(@Param('reviewId') reviewId: number): Promise<Review> {
+        try {
+            return this.reviewService.deleteReviewById(reviewId)
+        } catch (e) {
+            throw new HttpException('Delete review failed', HttpStatus.NOT_FOUND)
         }
     }
 
