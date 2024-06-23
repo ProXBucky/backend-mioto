@@ -28,4 +28,14 @@ export class PaymentService {
 
         return await this.paymentRepo.save(payment)
     }
+
+    async deletePayment(rentId: number): Promise<Payment> {
+        let payment = await this.paymentRepo.findOne({
+            where: { rent: { rentId: rentId } }
+        })
+        if (!payment) {
+            throw new HttpException("Payment not found", HttpStatus.NOT_FOUND)
+        }
+        return await this.paymentRepo.remove(payment)
+    }
 }

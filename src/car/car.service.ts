@@ -391,7 +391,7 @@ export class CarService {
             // Lọc các xe đã bị thuê trong khoảng thời gian yêu cầu
             cars = cars.filter(car => {
                 const overlappingRents = car.rents.filter(rent =>
-                    rent.rentStatus !== "completed" && rent.rentStatus !== "cancel" && // Lọc các trạng thái không ảnh hưởng
+                    rent.rentStatus !== "finish" && rent.rentStatus !== "cancel" && // Lọc các trạng thái không ảnh hưởng
                     (new Date(rent.rentBeginDate) < checkEndDate && new Date(rent.rentEndDate) > checkStartDate) // Kiểm tra trùng lặp thời gian
                 );
                 return overlappingRents.length === 0;

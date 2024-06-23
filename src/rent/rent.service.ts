@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rent } from './rent.entity';
-import { In, Like, Not, Repository } from 'typeorm';
+import { In, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
@@ -18,6 +18,37 @@ export class RentService {
         private readonly paymentService: PaymentService,
         private readonly voucherService: VoucherService
     ) { }
+
+    // Nửa đêm sẽ update
+    async updateRentStatus() {
+        const today = new Date()
+        const rents = await this.rentRepo.find({
+            where: {
+                rentStatus: 'ready',
+                rentBeginDate: today
+            },
+        });
+
+        for (const rent of rents) {
+            rent.rentStatus = 'ongoing';
+            await this.rentRepo.save(rent);
+        }
+    }
+
+    async updateRentStatusFinish() {
+        const today = new Date()
+        const rents = await this.rentRepo.find({
+            where: {
+                rentStatus: 'ongoing',
+                rentEndDate: today
+            },
+        });
+
+        for (const rent of rents) {
+            rent.rentStatus = 'finish';
+            await this.rentRepo.save(rent);
+        }
+    }
 
     async createNewRent(body: CreateNewRentDTO): Promise<Rent> {
 
@@ -69,6 +100,17 @@ export class RentService {
         }
     }
 
+    async deleteRent(rentId: number): Promise<Rent> {
+        let rent = await this.rentRepo.findOne({
+            where: { rentId: rentId }
+        })
+        if (!rent) {
+            throw new HttpException("Rent not found", HttpStatus.NO_CONTENT)
+        }
+        await this.paymentService.deletePayment(rentId)
+        return await this.rentRepo.remove(rent)
+    }
+
     async countTripByCarId(carId: number): Promise<{ tripCount: number }> {
         try {
             let tripCnt = 0
@@ -110,18 +152,88 @@ export class RentService {
                 where: {
                     user: { userId: userId }
                 },
-                relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment']
+                order: {
+                    car: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    }
+                },
+                relations: ['user', 'car', 'car.images', 'payment']
             });
             if (!allTrip || allTrip.length === 0) {
                 allTrip = []
             }
-            return allTrip
+            const processedTrips = await
+                Promise.all(allTrip.map(async trip => {
+                    if (trip.car.images && trip.car.images.length > 0) {
+                        trip.car.images = [trip.car.images[0]];
+                    }
+                    delete trip.user.password;
+                    return {
+                        rentId: trip.rentId,
+                        rentBeginDate: trip.rentBeginDate,
+                        rentEndDate: trip.rentEndDate,
+                        rentDays: trip.rentDays,
+                        rentStatus: trip.rentStatus,
+                        user: trip.user,
+                        car: trip.car,
+                        payment: trip.payment,
+                        voucher: trip.voucher
+                    };
+                }));
+            return processedTrips;
         }
         catch (error) {
             console.error('Error creating new rent:', error);
             throw new HttpException('Error creating new rent', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async getAllOrderByUserId(userId: number): Promise<Rent[]> {
+        try {
+            let allTrip = await this.rentRepo.find({
+                relations: ['user', 'car', 'car.images', 'payment'],
+                where: {
+                    car: { owners: { user: { userId: userId } } }
+                },
+                order: {
+                    car: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    }
+                }
+            });
+            if (!allTrip || allTrip.length === 0) {
+                allTrip = []
+            }
+            const processedTrips = await
+                Promise.all(allTrip.map(async trip => {
+                    if (trip.car.images && trip.car.images.length > 0) {
+                        trip.car.images = [trip.car.images[0]];
+                    }
+                    delete trip.user.password;
+                    return {
+                        rentId: trip.rentId,
+                        rentBeginDate: trip.rentBeginDate,
+                        rentEndDate: trip.rentEndDate,
+                        rentDays: trip.rentDays,
+                        rentStatus: trip.rentStatus,
+                        user: trip.user,
+                        car: trip.car,
+                        payment: trip.payment,
+                        voucher: trip.voucher
+                    };
+                }));
+            return processedTrips;
+        }
+        catch (error) {
+            console.error('Error creating new rent:', error);
+            throw new HttpException('Error creating new rent', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     async cancelRentByRentId(rentId: number): Promise<Rent> {
         try {
@@ -132,7 +244,9 @@ export class RentService {
             if (!trip) {
                 throw new HttpException('Trip not found', HttpStatus.NO_CONTENT)
             }
-            await this.voucherService.repayVoucher(trip.voucher.voucherId)
+            if (trip.voucher && trip.voucher.voucherId) {
+                await this.voucherService.repayVoucher(trip.voucher.voucherId)
+            }
             trip.rentStatus = 'cancel'
             return await this.rentRepo.save(trip)
         }
@@ -141,6 +255,24 @@ export class RentService {
             throw new HttpException('Error cancel new rent', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async acceptRentByRentId(rentId: number): Promise<Rent> {
+        try {
+            let trip = await this.rentRepo.findOne({
+                where: { rentId: rentId }
+            });
+            if (!trip) {
+                throw new HttpException('Trip not found', HttpStatus.NO_CONTENT)
+            }
+            trip.rentStatus = 'ready'
+            return await this.rentRepo.save(trip)
+        }
+        catch (error) {
+            console.error('Error cancel new rent:', error);
+            throw new HttpException('Error cancel new rent', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     convertToDate(dateString: string): Date {
         const [day, month, year] = dateString.split('/').map(Number);
@@ -161,7 +293,7 @@ export class RentService {
 
         // Kiểm tra trùng lặp thời gian
         const isOverlap = rents.some(rent => {
-            return rent.rentStatus !== 'completed' &&
+            return rent.rentStatus !== 'finish' &&
                 rent.rentStatus !== 'cancel' &&
                 new Date(rent.rentBeginDate) < checkEndDate &&
                 new Date(rent.rentEndDate) > checkStartDate;
@@ -175,44 +307,126 @@ export class RentService {
             let trips = []
             if (city === "tatCa") {
                 trips = await this.rentRepo.find({
+                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment', 'voucher'],
                     where: {
                         rentStatus: Not(In(['cancel', 'finish']))
                     },
-                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment'],
+                    order: {
+                        car: {
+                            images: {
+                                imageId: 'ASC'
+                            }
+                        }
+                    }
                 });
             }
             else {
                 trips = await this.rentRepo.find({
+                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment', 'voucher'],
                     where: {
                         car: {
                             location: Like(`%${city}%`)
                         },
                         rentStatus: Not(In(['cancel', 'finish']))
                     },
-                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment'],
+                    order: {
+                        car: {
+                            images: {
+                                imageId: 'ASC'
+                            }
+                        }
+                    }
                 });
             }
             if (!trips || trips.length === 0) {
                 return trips
             }
-            trips = trips.map(async trip => {
-                if (trip.car.images && trip.car.images.length > 0) {
-                    trip.car.images = [trip.car.images[0]];
-                }
-                delete trip.user.password
-                delete trip.car.owners.user.password
-                return {
-                    rentId: trip.rentId,
-                    rentBeginDate: trip.rentBeginDate,
-                    rentEndDate: trip.rentEndDate,
-                    rentDays: trip.rentDays,
-                    rentStatus: trip.rentStatus,
-                    user: trip.user,
-                    car: trip.car,
-                    payment: trip.payment,
-                };
-            });
-            return Promise.all(trips);
+            const processedTrips = await
+                Promise.all(trips.map(async trip => {
+                    if (trip.car.images && trip.car.images.length > 0) {
+                        trip.car.images = [trip.car.images[0]];
+                    }
+                    delete trip.user.password;
+                    delete trip.car.owners.user.password;
+                    return {
+                        rentId: trip.rentId,
+                        rentBeginDate: trip.rentBeginDate,
+                        rentEndDate: trip.rentEndDate,
+                        rentDays: trip.rentDays,
+                        rentStatus: trip.rentStatus,
+                        user: trip.user,
+                        car: trip.car,
+                        payment: trip.payment,
+                        voucher: trip.voucher
+                    };
+                }));
+            return processedTrips;
+        }
+        catch (e) {
+            console.log(e);
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async getAllTripFinishByCity(city: string): Promise<Rent[]> {
+        try {
+            let trips = []
+            if (city === "tatCa") {
+                trips = await this.rentRepo.find({
+                    relations: ['car.images', 'user', 'car', 'car.owners.user', 'payment', 'voucher'],
+                    where: {
+                        rentStatus: Not(In(['pending', 'ongoing', 'ready']))
+                    },
+                    order: {
+                        car: {
+                            images: {
+                                imageId: 'ASC'
+                            }
+                        }
+                    }
+                });
+            }
+            else {
+                trips = await this.rentRepo.find({
+                    relations: ['car.images', 'user', 'car', 'car.owners.user', 'payment', 'voucher'],
+                    where: {
+                        car: {
+                            location: Like(`%${city}%`)
+                        },
+                        rentStatus: Not(In(['pending', 'ongoing', 'ready']))
+                    },
+                    order: {
+                        car: {
+                            images: {
+                                imageId: 'ASC'
+                            }
+                        }
+                    }
+                });
+            }
+            if (!trips || trips.length === 0) {
+                return trips
+            }
+            const processedTrips = await
+                Promise.all(trips.map(async trip => {
+                    if (trip.car.images && trip.car.images.length > 0) {
+                        trip.car.images = [trip.car.images[0]];
+                    }
+                    delete trip.user.password;
+                    delete trip.car.owners.user.password;
+                    return {
+                        rentId: trip.rentId,
+                        rentBeginDate: trip.rentBeginDate,
+                        rentEndDate: trip.rentEndDate,
+                        rentDays: trip.rentDays,
+                        rentStatus: trip.rentStatus,
+                        user: trip.user,
+                        car: trip.car,
+                        payment: trip.payment,
+                        voucher: trip.voucher
+                    };
+                }));
+            return processedTrips;
         }
         catch (e) {
             console.log(e);

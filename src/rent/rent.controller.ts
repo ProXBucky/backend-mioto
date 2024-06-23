@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { Rent } from './rent.entity';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { RentService } from './rent.service';
@@ -19,6 +19,17 @@ export class RentController {
         }
     }
 
+    @Delete("/:rentId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Admin")
+    deleteRent(@Param("rentId") rentId: number): Promise<Rent> {
+        try {
+            return this.rentService.deleteRent(rentId)
+        } catch (e) {
+            throw new HttpException('Delete rent car failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
     @Get("/detail-trip/:rentId")
     getTripByRentId(@Param('rentId') rentId: number): Promise<Rent> {
         try {
@@ -29,6 +40,7 @@ export class RentController {
     }
 
     @Get("/all-trip/:userId")
+    @UseGuards(JwtAuthGuard)
     getAllTripByUserId(@Param('userId') userId: number): Promise<Rent[]> {
         try {
             return this.rentService.getAllTripByUserId(userId)
@@ -37,12 +49,33 @@ export class RentController {
         }
     }
 
+    @Get("/all-order/:userId")
+    @UseGuards(JwtAuthGuard)
+    getAllOrderByUserId(@Param('userId') userId: number): Promise<Rent[]> {
+        try {
+            return this.rentService.getAllOrderByUserId(userId)
+        } catch (e) {
+            throw new HttpException('Get all trip failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
     @Put("/cancel-trip/:rentId")
+    @UseGuards(JwtAuthGuard)
     cancelRentByRentId(@Param('rentId') rentId: number): Promise<Rent> {
         try {
             return this.rentService.cancelRentByRentId(rentId)
         } catch (e) {
             throw new HttpException('Cancel trip failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @Put("/accept-trip/:rentId")
+    @UseGuards(JwtAuthGuard)
+    acceptRentByRentId(@Param('rentId') rentId: number): Promise<Rent> {
+        try {
+            return this.rentService.acceptRentByRentId(rentId)
+        } catch (e) {
+            throw new HttpException('Accept trip failed', HttpStatus.NOT_FOUND)
         }
     }
 
@@ -56,11 +89,23 @@ export class RentController {
     }
 
     @Get("/all-trip-pending-by-city/:city")
-    // @UseGuards(JwtAuthGuard, RolesGuard)
-    // @Roles("Admin", "Staff")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Admin", "Staff")
     async getAllTripPendingByCity(@Param('city') city: string): Promise<Rent[]> {
         try {
             return await this.rentService.getAllTripPendingByCity(city);
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Get("/all-trip-finish-by-city/:city")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Admin", "Staff")
+    async getAllTripFinishByCity(@Param('city') city: string): Promise<Rent[]> {
+        try {
+            return await this.rentService.getAllTripFinishByCity(city);
         } catch (e) {
             console.log(e)
             throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
