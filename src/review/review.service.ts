@@ -15,6 +15,10 @@ export class ReviewService {
         private reviewRepo: Repository<Review>
     ) { }
 
+    async countReview(){
+        return await this.reviewRepo.count()
+    }
+
     async postReviewCar(body: ReviewCarDTO): Promise<Review> {
         if (!body.carId || !body.userId || !body.content || !body.reviewScore || !body.location) {
             throw new HttpException('Missing parameter', HttpStatus.BAD_REQUEST)

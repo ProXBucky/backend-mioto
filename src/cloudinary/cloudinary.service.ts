@@ -37,9 +37,6 @@ export class CloudinaryService {
         });
     }
 
-
-
-
     async uploadMultiImages(images: string[]): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
         const uploadPromises: Promise<(UploadApiResponse | UploadApiErrorResponse)>[] = images.map(image => {
             return new Promise((resolve, reject) => {
@@ -85,6 +82,15 @@ export class CloudinaryService {
     async uploadImageLicense(filePath: string): Promise<UploadApiResponse | UploadApiErrorResponse> {
         return new Promise<UploadApiResponse | UploadApiErrorResponse>((resolve, reject) => {
             v2.uploader.upload(filePath, { folder: 'license' }, (error, result) => {
+                if (error) return reject(error);
+                resolve(result)
+            })
+        });
+    }
+
+    async uploadImageTitleBlog(filePath: string): Promise<UploadApiResponse | UploadApiErrorResponse> {
+        return new Promise<UploadApiResponse | UploadApiErrorResponse>((resolve, reject) => {
+            v2.uploader.upload(filePath, { folder: 'blog' }, (error, result) => {
                 if (error) return reject(error);
                 resolve(result)
             })

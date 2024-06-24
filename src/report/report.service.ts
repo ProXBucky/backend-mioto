@@ -15,6 +15,10 @@ export class ReportService {
         private reportRepo: Repository<Report>
     ) { }
 
+    async countReport(){
+        return await this.reportRepo.count()
+    }
+
     async reportCar(body: ReportCarDTO): Promise<Report> {
         if (!body.carId || !body.userId || !body.reason) {
             throw new HttpException('Missing parameter', HttpStatus.BAD_REQUEST)

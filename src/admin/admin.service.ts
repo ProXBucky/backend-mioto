@@ -17,6 +17,10 @@ export class AdminService {
         private readonly cloudinaryService: CloudinaryService
     ) { }
 
+    async countAdmin(){
+        return await this.adminRepo.count()
+    }
+
     async createNewAdmin(data: Admin): Promise<Admin> {
         let checkUsername = await this.adminRepo.findOne({ where: { username: data.username } })
         let checkEmail = await this.adminRepo.findOne({ where: { email: data.email } })

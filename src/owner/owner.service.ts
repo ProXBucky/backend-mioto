@@ -12,6 +12,10 @@ export class OwnerService {
         private readonly carOwnerRepo: Repository<CarOwner>
     ) { }
 
+    async countCar(){
+        return await this.carOwnerRepo.count()
+    }
+
     async createOwnNewCar(userId: number, carId: number): Promise<CarOwner> {
         let carOwner = new CarOwner
 

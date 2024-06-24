@@ -38,11 +38,14 @@ import { AuthModule } from './auth/auth.module';
 import { CarHasFeature } from './carHasFeature/carHasFeature.entity';
 import { CarHasFeatureModule } from './carHasFeature/carHasFeature.module';
 import { VoucherOwner } from './voucher/voucherOwner.entity';
+import { BlogModule } from './blog/blog.module';
+import { Blog } from './blog/blog.entity';
 
 
 @Module({
   imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule, CarHasFeatureModule,
     OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule, AuthModule,
+    BlogModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -50,7 +53,8 @@ import { VoucherOwner } from './voucher/voucherOwner.entity';
       username: 'postgres',
       password: '123456',
       database: 'miotoDB',
-      entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress, UserLicense, CarOwner, User, CarHasFeature, VoucherOwner],
+      entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress,
+        UserLicense, CarOwner, User, CarHasFeature, VoucherOwner, Blog],
       synchronize: true,
     }),
     MulterModule.register({
@@ -58,7 +62,8 @@ import { VoucherOwner } from './voucher/voucherOwner.entity';
       limits: {
         fileSize: 10 * 1024 * 1024, // Giới hạn kích thước file là 10MB
       },
-    })
+    }),
+    BlogModule
   ],
   controllers: [AppController, CloudinaryController],
   providers: [AppService, CloudinaryService],

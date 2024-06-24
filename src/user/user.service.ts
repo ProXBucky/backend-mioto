@@ -19,6 +19,10 @@ export class UserService {
 
     ) { }
 
+    async countUser(){
+        return await this.userRepo.count()
+    }
+
     async createNewUser(data: CreateUserDTO): Promise<User> {
         let checkUsername = await this.userRepo.findOne({ where: { username: data.username } })
         let checkEmail = await this.userRepo.findOne({ where: { email: data.email } })

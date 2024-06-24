@@ -1,6 +1,6 @@
-import { Exclude } from "class-transformer";
 import { IsDateString, IsEmail, IsEnum, IsString } from "class-validator";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Blog } from "../blog/blog.entity";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Admin {
@@ -39,4 +39,7 @@ export class Admin {
     @Column({ nullable: true, type: 'date' })
     @IsDateString()
     dob: Date;
+
+    @OneToMany(() => Blog, blog => blog.admin)
+    blogs: Blog[];
 }

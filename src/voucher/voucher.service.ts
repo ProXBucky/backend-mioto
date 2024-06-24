@@ -16,6 +16,10 @@ export class VoucherService {
         private readonly voucherOwnerRepo: Repository<VoucherOwner>
     ) { }
 
+    async countVoucher(){
+        return await this.voucherRepo.count()
+    }
+
     async createNewVoucher(body: CreateNewVoucherDTO): Promise<Voucher> {
         if (!body.voucherCode || !body.type || !body.expireDate || !body.discountPercent || !body.description) {
             throw new HttpException('Missing parameter', HttpStatus.BAD_REQUEST)

@@ -35,6 +35,10 @@ export class RentService {
         }
     }
 
+    async countRent(){
+        return await this.rentRepo.count()
+    }
+
     async updateRentStatusFinish() {
         const today = new Date()
         const rents = await this.rentRepo.find({
