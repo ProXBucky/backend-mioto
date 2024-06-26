@@ -39,4 +39,10 @@ export class AddressService {
         let response = await this.userAddressRepo.remove(addressFind)
         return response
     }
+
+
+    async deleteAddressByUserId(userId: number): Promise<UserAddress[]> {
+        let addressFind = await this.userAddressRepo.find({ where: { user: { userId: userId } } })
+        return await this.userAddressRepo.remove(addressFind)
+    }
 }

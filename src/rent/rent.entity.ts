@@ -3,7 +3,7 @@ import { IsDateString } from "class-validator";
 import { User } from "../user/user.entity";
 import { Car } from "../car/car.entity";
 import { Payment } from "../payment/payment.entity";
-import { Voucher } from "../voucher/voucher.entity";
+import { VoucherOwner } from "../voucher/voucherOwner.entity";
 
 @Entity()
 export class Rent {
@@ -24,9 +24,9 @@ export class Rent {
     @Column()
     rentStatus: string;
 
-    @OneToOne(() => Voucher, { nullable: true }) // Mối quan hệ tùy chọn
-    @JoinColumn({ name: 'voucherId' })
-    voucher: Voucher | null;
+    @OneToOne(() => VoucherOwner, { nullable: true }) // Mối quan hệ tùy chọn
+    @JoinColumn({ name: 'voucherOwnerId' })
+    voucherOwner: VoucherOwner | null;
 
     @ManyToOne(() => User, user => user.rents)
     @JoinColumn({ name: 'userId' })

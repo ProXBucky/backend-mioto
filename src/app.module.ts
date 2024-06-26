@@ -9,7 +9,6 @@ import { ImageModule } from './carImage/image.module';
 import { FeatureModule } from './feature/feature.module';
 import { LicenseModule } from './license/license.module';
 import { LikeModule } from './like/like.module';
-import { OwnerModule } from './owner/owner.module';
 import { PaymentModule } from './payment/payment.module';
 import { RentModule } from './rent/rent.module';
 import { ReportModule } from './report/report.module';
@@ -28,7 +27,6 @@ import { Report } from './report/report.entity';
 import { Like } from './like/like.entity';
 import { UserAddress } from './address/address.entity';
 import { UserLicense } from './license/license.entity';
-import { CarOwner } from './owner/owner.entity';
 import { User } from './user/user.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
@@ -40,27 +38,54 @@ import { CarHasFeatureModule } from './carHasFeature/carHasFeature.module';
 import { VoucherOwner } from './voucher/voucherOwner.entity';
 import { BlogModule } from './blog/blog.module';
 import { Blog } from './blog/blog.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DB_PASSWORD, DB_USER, EMAIL_PASSWORD, EMAIL_USER } from './config';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 
 @Module({
   imports: [AddressModule, AdminModule, CarModule, ImageModule, FeatureModule, LicenseModule, LikeModule, CarHasFeatureModule,
-    OwnerModule, PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule, AuthModule,
+    PaymentModule, RentModule, ReportModule, ReviewModule, UserModule, VoucherModule, CloudinaryModule, AuthModule,
     BlogModule,
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'postgres',
-      password: '123456',
+      username: DB_USER,
+      password: DB_PASSWORD,
       database: 'miotoDB',
       entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress,
-        UserLicense, CarOwner, User, CarHasFeature, VoucherOwner, Blog],
+        UserLicense, User, CarHasFeature, VoucherOwner, Blog],
       synchronize: true,
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com', // SMTP host của nhà cung cấp email của bạn
+        port: 587, // Cổng SMTP của nhà cung cấp email của bạn
+        secure: false, // true cho 465, false cho các cổng khác
+        auth: {
+          user: EMAIL_USER,
+          pass: EMAIL_PASSWORD, // Mật khẩu ứng dụng bạn vừa tạo
+        },
+      },
+      defaults: {
+        from: '"No Reply" <mioto-nest@gmail.com>',
+      },
+      template: {
+        dir: join(__dirname, 'templates'),
+        adapter: new HandlebarsAdapter(), // hoặc Pug, EJS, v.v.
+        options: {
+          strict: true,
+        },
+      },
     }),
     MulterModule.register({
       dest: './upload',
       limits: {
-        fileSize: 10 * 1024 * 1024, // Giới hạn kích thước file là 10MB
+        fileSize: 10 * 1024 * 1024,
       },
     }),
     BlogModule

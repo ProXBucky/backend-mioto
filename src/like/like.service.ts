@@ -14,6 +14,20 @@ export class LikeService {
         @InjectRepository(Like) private readonly likeRepo: Repository<Like>
     ) { }
 
+    async deleteLikeByCarId(carId: number): Promise<Like[]> {
+        let likes = await this.likeRepo.find({
+            where: { car: { carId: carId } }
+        })
+        return await this.likeRepo.remove(likes)
+    }
+
+    async deleteLikeByUserId(userId: number): Promise<Like[]> {
+        let likes = await this.likeRepo.find({
+            where: { user: { userId: userId } }
+        })
+        return await this.likeRepo.remove(likes)
+    }
+
     async likeCarAction(body: LikeDTO): Promise<Like> {
         if (!body.userId || !body.carId) {
             throw new HttpException('Error missing parameter ', HttpStatus.BAD_REQUEST)
@@ -80,7 +94,7 @@ export class LikeService {
     async getAllCarLiked(userId: number): Promise<GetLikeDTO[]> {
         let allCarliked = await this.likeRepo.find({
             where: { user: { userId: userId } },
-            relations: ['car', 'car.images', 'car.owners.user']
+            relations: ['car', 'car.images', 'car.user']
         })
         if (!allCarliked) {
             throw new HttpException('Error system', HttpStatus.BAD_REQUEST)

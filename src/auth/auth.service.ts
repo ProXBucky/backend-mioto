@@ -7,12 +7,17 @@ import { plainToClass } from 'class-transformer';
 import { GetAdminDTO } from '../admin/dto/GetAdminDTO.dto';
 import { AdminService } from '../admin/admin.service';
 import { Admin } from '../admin/admin.entity';
+import * as nodemailer from 'nodemailer';
+import * as crypto from 'crypto';
+import { EMAIL_USER, EMAIL_PASSWORD } from '../config';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
     constructor(private readonly jwtService: JwtService,
         private readonly userService: UserService,
-        private readonly adminService: AdminService
+        private readonly adminService: AdminService,
+        private readonly mailerService: MailerService
 
     ) { }
 
@@ -46,5 +51,24 @@ export class AuthService {
 
     async invalidateToken(token: string): Promise<void> {
         this.jwtService.decode(token);
+    }
+
+
+    async resetPassword(email: string): Promise<void> {
+        const newPassword = crypto.randomBytes(8).toString('hex');
+        let user = await this.userService.findOneByUsernameOrEmail(email)
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        }
+        await this.userService.changePasswordByAdmin(parseInt(user.userId), newPassword)
+        await this.mailerService.sendMail({
+            to: email,
+            subject: 'Lấy lại mật khẩu',
+            html: `<p>Mật khẩu mới của bạn là: ${newPassword}</p>
+              <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+              <p>Vui lòng đổi lại mật khẩu mới sau khi lấy lại mật khẩu.</p>
+              `,
+            // { name: 'Recipient' },
+        });
     }
 }

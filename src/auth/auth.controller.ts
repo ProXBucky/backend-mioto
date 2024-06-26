@@ -50,4 +50,10 @@ export class AuthController {
         await this.authService.invalidateToken(token.token);
         return { message: 'Logged out successfully' };
     }
+
+    @Post('/reset-password')
+    async resetPassword(@Body() email: { email: string }) {
+        await this.authService.resetPassword(email.email);
+        return { message: 'New password sent to your email' };
+    }
 }

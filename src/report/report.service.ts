@@ -15,8 +15,22 @@ export class ReportService {
         private reportRepo: Repository<Report>
     ) { }
 
-    async countReport(){
+    async countReport() {
         return await this.reportRepo.count()
+    }
+
+    async deleteReportByCarId(carId: number): Promise<Report[]> {
+        let reports = await this.reportRepo.find({
+            where: { car: { carId: carId } }
+        })
+        return await this.reportRepo.remove(reports)
+    }
+
+    async deleteReportByUserId(userId: number): Promise<Report[]> {
+        let reports = await this.reportRepo.find({
+            where: { user: { userId: userId } }
+        })
+        return await this.reportRepo.remove(reports)
     }
 
     async reportCar(body: ReportCarDTO): Promise<Report> {
@@ -40,14 +54,14 @@ export class ReportService {
 
     async getAllReports(): Promise<GetReportDTO[]> {
         let allReport = await this.reportRepo.find({
-            relations: ['user', 'car', 'car.owners.user']
+            relations: ['user', 'car', 'car.user']
         })
         if (!allReport || allReport.length === 0) {
             throw new HttpException("Dont have reports", HttpStatus.NO_CONTENT)
         }
         allReport = allReport.map(report => {
-            if (report.car && report.car.owners) {
-                delete report.car.owners.user.password
+            if (report.car && report.car) {
+                delete report.car.user.password
             }
             return report;
         });

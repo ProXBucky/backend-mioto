@@ -111,4 +111,14 @@ export class RentController {
             throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
         }
     }
+
+    @Get("/count/:userId")
+    async countRentOfUserId(@Param('userId') userId: number): Promise<number> {
+        try {
+            return await this.rentService.countRentOfUserId(userId);
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Count rent fail', HttpStatus.NOT_FOUND);
+        }
+    }
 }

@@ -9,17 +9,33 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ChangePasswordDTO } from './dto/ChangePasswordDTO.dto';
 import * as argon2 from 'argon2';
 import { GetUserDTO } from './dto/GetUserDTO.dto';
+import { AddressService } from '../address/address.service';
+import { LicenseService } from '../license/license.service';
+import { VoucherService } from '../voucher/voucher.service';
+import { RentService } from '../rent/rent.service';
+import { CarService } from '../car/car.service';
+import { ReportService } from '../report/report.service';
+import { ReviewService } from '../review/review.service';
+import { LikeService } from '../like/like.service';
 @Injectable()
 export class UserService {
 
     constructor(
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
-        private readonly cloudinaryService: CloudinaryService
+        private readonly cloudinaryService: CloudinaryService,
+        private readonly addressService: AddressService,
+        private readonly licenseService: LicenseService,
+        private readonly voucherOwnerService: VoucherService,
+        private readonly rentService: RentService,
+        private readonly carService: CarService,
+        private readonly reportService: ReportService,
+        private readonly reviewService: ReviewService,
+        private readonly likeService: LikeService,
 
     ) { }
 
-    async countUser(){
+    async countUser() {
         return await this.userRepo.count()
     }
 
@@ -88,13 +104,6 @@ export class UserService {
         return plainToClass(User, updateUser)
     }
 
-    async deleteUser(userId: number): Promise<User> {
-        const user = await this.userRepo.findOne({ where: { userId: userId } });
-        if (!user) {
-            throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-        }
-        return await this.userRepo.remove(user);
-    }
 
     async changePassword(userId: number, data: ChangePasswordDTO): Promise<User> {
         const user = await this.userRepo.findOne({ where: { userId: userId } });
@@ -124,7 +133,6 @@ export class UserService {
     }
 
     async changePasswordByAdmin(userId: number, data: string): Promise<User> {
-        console.log('service1', userId, data)
         const user = await this.userRepo.findOne({ where: { userId: userId } });
         if (!user) {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -161,6 +169,22 @@ export class UserService {
         }
         return await this.userRepo.save(newUser)
 
+    }
+
+    async deleteUser(userId: number): Promise<User> {
+        const user = await this.userRepo.findOne({ where: { userId: userId } });
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+        }
+        await this.addressService.deleteAddressByUserId(user.userId)
+        await this.licenseService.deleteLicenseByUserId(user.userId)
+        await this.reportService.deleteReportByUserId(user.userId)
+        await this.reviewService.deleteReviewByUserId(user.userId)
+        await this.likeService.deleteLikeByUserId(user.userId)
+        await this.rentService.deleteRentByUserId(user.userId)
+        await this.voucherOwnerService.deleteVoucherOwnByUserId(user.userId)
+        await this.carService.deleteCarsByUserId(user.userId)
+        return await this.userRepo.remove(user);
     }
 
 

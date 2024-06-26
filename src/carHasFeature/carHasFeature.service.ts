@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CarHasFeature } from "./carHasFeature.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -12,6 +12,13 @@ export class CarHasFeatureService {
         private readonly carHasFeatureRepo: Repository<CarHasFeature>
 
     ) { }
+
+    async deleteCarHasFeatureByCarId(carId: number): Promise<CarHasFeature[]> {
+        let res = await this.carHasFeatureRepo.find({
+            where: { car: { carId: carId } }
+        })
+        return await this.carHasFeatureRepo.remove(res)
+    }
 
     async createCarHaveFeature(carId: number, featureIds: number[]): Promise<CarHasFeature[]> {
         try {

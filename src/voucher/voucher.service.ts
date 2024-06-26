@@ -16,7 +16,7 @@ export class VoucherService {
         private readonly voucherOwnerRepo: Repository<VoucherOwner>
     ) { }
 
-    async countVoucher(){
+    async countVoucher() {
         return await this.voucherRepo.count()
     }
 
@@ -109,6 +109,11 @@ export class VoucherService {
         await Promise.all(promises);
 
         return voucherOwners;
+    }
+
+    async deleteVoucherOwnByUserId(userId: number): Promise<VoucherOwner[]> {
+        let voucherFind = await this.voucherOwnerRepo.find({ where: { user: { userId: userId } } })
+        return await this.voucherOwnerRepo.remove(voucherFind)
     }
 
 

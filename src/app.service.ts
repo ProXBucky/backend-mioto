@@ -3,11 +3,11 @@ import { RentService } from './rent/rent.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AdminService } from './admin/admin.service';
 import { UserService } from './user/user.service';
-import { OwnerService } from './owner/owner.service';
 import { BlogService } from './blog/blog.service';
 import { VoucherService } from './voucher/voucher.service';
 import { ReportService } from './report/report.service';
 import { ReviewService } from './review/review.service';
+import { CarService } from './car/car.service';
 
 @Injectable()
 export class AppService {
@@ -16,7 +16,7 @@ export class AppService {
     private readonly rentService: RentService,
     private readonly adminService: AdminService,
     private readonly userService: UserService,
-    private readonly ownService: OwnerService,
+    private readonly carService: CarService,
     private readonly blogService: BlogService,
     private readonly voucherService: VoucherService,
     private readonly reportService: ReportService,
@@ -24,6 +24,7 @@ export class AppService {
 
   ) { }
 
+  // @Cron(CronExpression.EVERY_MINUTE)
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleCron() {
     console.log('Running cron job to update rent status');
@@ -38,13 +39,16 @@ export class AppService {
   async statistic() {
     let adminC = await this.adminService.countAdmin()
     let userC = await this.userService.countUser()
-    let carC = await this.ownService.countCar()
+    let carC = await this.carService.countCar()
     let rentC = await this.rentService.countRent()
     let blogC = await this.blogService.countBlog()
     let voucherC = await this.voucherService.countVoucher()
     let reportC = await this.reportService.countReport()
     let reviewC = await this.reviewService.countReview()
-    return{
+    let chartStatus = await this.rentService.getRentStatusCounts()
+    let res = await this.carService.getCarCountByBrand()
+    let res1 = await this.rentService.getRentCountByBrand()
+    return {
       adminCount: adminC,
       userCount: userC,
       carCount: carC,
@@ -52,7 +56,10 @@ export class AppService {
       blogCount: blogC,
       voucherCount: voucherC,
       reportCount: reportC,
-      reviewCount: reviewC
+      reviewCount: reviewC,
+      chartStatus: chartStatus,
+      res: res,
+      res1: res1
     }
 
   }

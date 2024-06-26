@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Not, Repository } from 'typeorm';
 import { Car } from './car.entity';
 import { RegisterNewCarDTO } from './dto/RegisterNewCarDTO.dto';
-import { OwnerService } from '../owner/owner.service';
 import { FeatureService } from '../feature/feature.service';
 import { CarHasFeatureService } from '../carHasFeature/carHasFeature.service';
 import { ImageService } from '../carImage/image.service';
@@ -12,24 +11,57 @@ import { GetCarDTO } from './dto/GetCarDTO.dto';
 import { plainToInstance } from 'class-transformer';
 import { ReviewService } from '../review/review.service';
 import { RentService } from '../rent/rent.service';
+import { User } from '../user/user.entity';
+import { ReportService } from '../report/report.service';
+import { LikeService } from '../like/like.service';
 
 @Injectable()
 export class CarService {
     constructor(
         @InjectRepository(Car)
         private readonly carRepo: Repository<Car>,
-        private readonly ownerService: OwnerService,
         private readonly featureService: FeatureService,
         private readonly carHasFeatureService: CarHasFeatureService,
         private readonly carImageService: ImageService,
         private readonly reviewService: ReviewService,
-        private readonly rentService: RentService
+        private readonly rentService: RentService,
+        private readonly reportService: ReportService,
+        private readonly likeService: LikeService
     ) { }
+
+    async countCar() {
+        return await this.carRepo.count()
+    }
+
+    async getCarCountByBrand(): Promise<{ brand: string[], count: number[] }> {
+        const cars = await this.carRepo
+            .createQueryBuilder("car")
+            .select("car.brand", "brand")
+            .addSelect("COUNT(car.carId)", "count")
+            .groupBy("car.brand")
+            .getRawMany();
+
+        const brands = cars.map(item => item.brand);
+        const counts = cars.map(item => parseInt(item.count));
+
+        return { brand: brands, count: counts };
+    }
+
+    async getCarByUserId(userId: number): Promise<GetCarDTO[]> {
+        let cars = await this.carRepo.find({
+            where: { user: { userId: userId } },
+            relations: ['images', 'carFeatures.feature', 'user'],
+        });
+        if (!cars || cars.length === 0) {
+            throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
+        }
+        return plainToInstance(GetCarDTO, cars);
+    }
 
     async getCarByCarId(carId: number): Promise<GetCarDTO> {
         let cars = await this.carRepo.findOne({
             where: { carId: carId },
-            relations: ['images', 'carFeatures.feature', 'owners.user'],
+            relations: ['images', 'carFeatures.feature', 'user'],
         });
         if (!cars) {
             throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
@@ -55,21 +87,19 @@ export class CarService {
             let cars = []
             if (userId !== 0) {
                 cars = await this.carRepo.find({
-                    relations: ['owners', 'owners.user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
-                        owners: {
-                            user: {
-                                userId: Not(userId)
-                            }
+                        user: {
+                            userId: Not(userId)
                         }
                     }
                 });
             }
             else {
                 cars = await this.carRepo.find({
-                    relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
@@ -107,12 +137,12 @@ export class CarService {
             let cars = []
             if (city === "tatCa") {
                 cars = await this.carRepo.find({
-                    relations: ['owners', 'owners.user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
                 });
             }
             else {
                 cars = await this.carRepo.find({
-                    relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
                     }
@@ -165,17 +195,10 @@ export class CarService {
             newCar.ward = body.ward
             newCar.streetAddress = body.streetAddress
             newCar.status = "Approving"
+            let user = new User
+            user.userId = userId
+            newCar.user = user
             let carReponse = await this.carRepo.save(newCar)
-            if (carReponse && carReponse.carId) {
-                try {
-                    let res = await this.ownerService.createOwnNewCar(userId, carReponse.carId)
-                    if (!res) {
-                        throw new HttpException('Create Own Car Fail', HttpStatus.BAD_REQUEST)
-                    }
-                } catch (err) {
-                    console.log('1', err)
-                }
-            }
 
             if (carReponse && carReponse.carId) {
                 try {
@@ -231,17 +254,10 @@ export class CarService {
             newCar.ward = body.ward
             newCar.streetAddress = body.streetAddress
             newCar.status = "Approved"
+            let user = new User
+            user.userId = userId
+            newCar.user = user
             let carReponse = await this.carRepo.save(newCar)
-            if (carReponse && carReponse.carId) {
-                try {
-                    let res = await this.ownerService.createOwnNewCar(userId, carReponse.carId)
-                    if (!res) {
-                        throw new HttpException('Create Own Car Fail', HttpStatus.BAD_REQUEST)
-                    }
-                } catch (err) {
-                    console.log(err)
-                }
-            }
 
             if (carReponse && carReponse.carId) {
                 try {
@@ -342,9 +358,42 @@ export class CarService {
         }
     }
 
-    // async deleteCarByCarId(carId: number): Promise<Car> {
+    async deleteCarByCarId(carId: number): Promise<Car> {
+        let car = await this.carRepo.findOne({
+            where: { carId: carId }
+        })
+        if (!car) {
+            throw new HttpException("Car not found", HttpStatus.NO_CONTENT)
+        }
+        await this.rentService.deleteRentByCarId(car.carId)
+        await this.reportService.deleteReportByCarId(car.carId)
+        await this.reviewService.deleteReviewByCarId(car.carId)
+        await this.likeService.deleteLikeByCarId(car.carId)
+        await this.carImageService.deleteAllCarImageByCarId(car.carId)
+        await this.carHasFeatureService.deleteCarHasFeatureByCarId(car.carId)
+        return await this.carRepo.remove(car)
+    }
 
-    // }
+    async deleteCarsByUserId(userId: number): Promise<Car[]> {
+        const cars = await this.carRepo.find({
+            where: { user: { userId: userId } },
+        });
+
+        if (!cars || cars.length === 0) {
+            throw new HttpException('Car not found', HttpStatus.NO_CONTENT);
+        }
+
+        for (const car of cars) {
+            await this.rentService.deleteRentByCarId(car.carId);
+            await this.reportService.deleteReportByCarId(car.carId);
+            await this.reviewService.deleteReviewByCarId(car.carId);
+            await this.likeService.deleteLikeByCarId(car.carId);
+            await this.carImageService.deleteAllCarImageByCarId(car.carId);
+            await this.carHasFeatureService.deleteCarHasFeatureByCarId(car.carId);
+        }
+
+        return await this.carRepo.remove(cars);
+    }
 
     convertToDate(dateString: string): Date {
         const [day, month, year] = dateString.split('/').map(Number);
@@ -363,14 +412,12 @@ export class CarService {
             // Kiểm tra điều kiện userId và lấy danh sách xe tương ứng
             if (userId !== 0) {
                 cars = await this.carRepo.find({
-                    relations: ['owners', 'owners.user', 'images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    relations: ['user', 'images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
-                        owners: {
-                            user: {
-                                userId: Not(userId)
-                            }
+                        user: {
+                            userId: Not(userId)
                         }
                     }
                 });
@@ -425,7 +472,7 @@ export class CarService {
         try {
             let cars = []
             cars = await this.carRepo.find({
-                relations: ['images', 'owners', 'owners.user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
             });
 
             if (!cars || cars.length === 0) {

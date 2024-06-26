@@ -62,4 +62,10 @@ export class LicenseService {
         }
 
     }
+
+    async deleteLicenseByUserId(userId: number): Promise<UserLicense> {
+        let license = await this.userLicenseRepo.findOne({ where: { user: { userId: userId } } })
+        await this.cloudinaryService.deleteImage(license.fileUploadID)
+        return await this.userLicenseRepo.remove(license)
+    }
 }

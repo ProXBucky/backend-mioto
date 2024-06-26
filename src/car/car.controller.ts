@@ -12,6 +12,15 @@ import { Roles } from '../auth/roles.decorator';
 export class CarController {
     constructor(private readonly carService: CarService) { }
 
+    @Get("owner/:userId")
+    getCarByUserId(@Param('userId') userId: number): Promise<GetCarDTO[]> {
+        try {
+            return this.carService.getCarByUserId(userId)
+        } catch (e) {
+            throw new HttpException('Get car fail', HttpStatus.NOT_FOUND)
+        }
+    }
+
     @Get("car-detail/:carId")
     getCarByCarId(@Param('carId') carId: number): Promise<GetCarDTO> {
         try {
@@ -91,14 +100,17 @@ export class CarController {
         }
     }
 
-    // @Delete("/:carId")
-    // deleteCarByCarId(@Param('carId') carId: number): Promise<Car> {
-    //     try {
-    //         return this.carService.deleteCarByCarId(carId)
-    //     } catch (e) {
-    //         throw new HttpException('Delete car fail', HttpStatus.NOT_FOUND)
-    //     }
-    // }
+
+    @Delete("/delete/:carId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Admin')
+    deleteCarByCarId(@Param('carId') carId: number): Promise<Car> {
+        try {
+            return this.carService.deleteCarByCarId(carId)
+        } catch (e) {
+            throw new HttpException('Delete car fail', HttpStatus.NOT_FOUND)
+        }
+    }
 
     @Get("/statistic/:carId")
     async statisticCar(@Param('carId') carId: number): Promise<{ star: number, tripCount: number, reviewCount: number }> {

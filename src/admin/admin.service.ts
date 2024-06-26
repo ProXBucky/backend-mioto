@@ -8,16 +8,20 @@ import { plainToClass } from 'class-transformer';
 import { GetAdminDTO } from './dto/GetAdminDTO.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import * as argon2 from 'argon2';
+import { BlogService } from '../blog/blog.service';
 
 @Injectable()
 export class AdminService {
 
-    constructor(@InjectRepository(Admin)
-    private readonly adminRepo: Repository<Admin>,
-        private readonly cloudinaryService: CloudinaryService
+    constructor(
+        @InjectRepository(Admin)
+        private readonly adminRepo: Repository<Admin>,
+
+        private readonly cloudinaryService: CloudinaryService,
+        private readonly blogService: BlogService,
     ) { }
 
-    async countAdmin(){
+    async countAdmin() {
         return await this.adminRepo.count()
     }
 
@@ -99,11 +103,18 @@ export class AdminService {
     }
 
     async deleteAdmin(adminId: number): Promise<Admin> {
-        const user = await this.adminRepo.findOne({ where: { adminId } });
-        if (!user) {
-            throw new HttpException('Admin not found', HttpStatus.BAD_REQUEST);
+        try {
+            let admin = await this.adminRepo.findOne({
+                where: { adminId: adminId }
+            })
+            if (!admin) {
+                throw new HttpException("admin not found", HttpStatus.NO_CONTENT)
+            }
+            await this.blogService.deleteBlogByAdminId(admin.adminId)
+            return await this.adminRepo.remove(admin);
+        } catch (err) {
+            console.log(err)
         }
-        return await this.adminRepo.remove(user);
     }
 
     async findOneByUsernameOrEmail(usernameOrEmail: string): Promise<Admin> {

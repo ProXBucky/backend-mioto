@@ -1,16 +1,14 @@
-import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsOptional } from "class-validator";
+import {IsEmail, IsEnum } from "class-validator";
 import { UserAddress } from "../address/address.entity";
 import { UserLicense } from "../license/license.entity";
 import { Like } from "../like/like.entity";
-import { CarOwner } from "../owner/owner.entity";
 import { Rent } from "../rent/rent.entity";
 import { Report } from "../report/report.entity";
 import { Review } from "../review/review.entity";
-import { Voucher } from "../voucher/voucher.entity";
-import { BeforeInsert, Column, Entity, IsNull, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import * as argon2 from "argon2"
-import { Exclude } from "class-transformer";
 import { VoucherOwner } from "../voucher/voucherOwner.entity";
+import { Car } from "../car/car.entity";
 
 @Entity()
 export class User {
@@ -70,8 +68,8 @@ export class User {
     @OneToMany(() => Like, like => like.user)
     likes: Like[];
 
-    @OneToOne(() => CarOwner, carOwner => carOwner.user)
-    cars: CarOwner;
+    @OneToMany(() => Car, car => car.user)
+    cars: Car[];
 
     @OneToMany(() => Rent, rent => rent.user)
     rents: Rent[];

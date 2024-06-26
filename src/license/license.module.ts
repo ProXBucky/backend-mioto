@@ -10,6 +10,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 @Module({
     imports: [TypeOrmModule.forFeature([UserLicense])],
     providers: [LicenseService, CloudinaryService],
-    controllers: [LicenseController]
+    controllers: [LicenseController],
+    exports: [LicenseService]
 })
 export class LicenseModule { }

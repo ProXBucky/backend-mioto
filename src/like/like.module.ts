@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
     imports: [TypeOrmModule.forFeature([Like])],
     providers: [LikeService],
-    controllers: [LikeController]
+    controllers: [LikeController],
+    exports: [LikeService]
 })
 export class LikeModule { }

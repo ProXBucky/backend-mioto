@@ -15,8 +15,22 @@ export class ReviewService {
         private reviewRepo: Repository<Review>
     ) { }
 
-    async countReview(){
+    async countReview() {
         return await this.reviewRepo.count()
+    }
+
+    async deleteReviewByCarId(carId: number): Promise<Review[]> {
+        let reviews = await this.reviewRepo.find({
+            where: { car: { carId: carId } }
+        })
+        return await this.reviewRepo.remove(reviews)
+    }
+
+    async deleteReviewByUserId(userId: number): Promise<Review[]> {
+        let reports = await this.reviewRepo.find({
+            where: { user: { userId: userId } }
+        })
+        return await this.reviewRepo.remove(reports)
     }
 
     async postReviewCar(body: ReviewCarDTO): Promise<Review> {

@@ -15,7 +15,7 @@ export class BlogService {
         private cloudinaryService: CloudinaryService
     ) { }
 
-    async countBlog(){
+    async countBlog() {
         return await this.blogRepository.count()
     }
 
@@ -90,5 +90,15 @@ export class BlogService {
         await this.cloudinaryService.deleteImage(blogFind.imageTitleId)
         return await this.blogRepository.remove(blogFind);
     }
+
+    async deleteBlogByAdminId(adminId: number): Promise<Blog[]> {
+        let res = await this.blogRepository.find({ where: { admin: { adminId: adminId } } })
+        if (res && res.length > 0) {
+            const imageLinkIDs = res.map(item => item.imageTitleId);
+            await this.cloudinaryService.deleteMultiImages(imageLinkIDs)
+            return await this.blogRepository.remove(res)
+        }
+    }
+
 
 }

@@ -1,13 +1,11 @@
-import { IsEnum, IsOptional } from "class-validator";
 import { CarImage } from "../carImage/image.entity";
-import { Feature } from "../feature/feature.entity";
 import { Like } from "../like/like.entity";
-import { CarOwner } from "../owner/owner.entity";
 import { Rent } from "../rent/rent.entity";
 import { Report } from "../report/report.entity";
 import { Review } from "../review/review.entity";
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CarHasFeature } from "../carHasFeature/carHasFeature.entity";
+import { User } from "../user/user.entity";
 
 
 @Entity()
@@ -72,8 +70,9 @@ export class Car {
     @OneToMany(() => Like, like => like.car)
     likes: Like[];
 
-    @OneToOne(() => CarOwner, carOwner => carOwner.car)
-    owners: CarOwner;
+    @ManyToOne(() => User, user => user.cars)
+    @JoinColumn({ name: 'userId' })
+    user: User;
 
     @OneToMany(() => CarImage, carImage => carImage.car)
     images: CarImage[];

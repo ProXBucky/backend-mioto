@@ -59,7 +59,7 @@ export class UserController {
 
     @Delete("/:userId")
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('Staff', 'Admin')
+    @Roles('Admin')
     deleteUser(@Param('userId') id: number): Promise<User> {
         try {
             return this.userService.deleteUser(id)

@@ -6,8 +6,8 @@ import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
-import { Voucher } from '../voucher/voucher.entity';
 import { VoucherService } from '../voucher/voucher.service';
+import { VoucherOwner } from '../voucher/voucherOwner.entity';
 
 
 @Injectable()
@@ -35,7 +35,7 @@ export class RentService {
         }
     }
 
-    async countRent(){
+    async countRent() {
         return await this.rentRepo.count()
     }
 
@@ -52,6 +52,32 @@ export class RentService {
             rent.rentStatus = 'finish';
             await this.rentRepo.save(rent);
         }
+    }
+
+    async getRentCountByBrand(): Promise<{ countRent: number[] }> {
+        const rents = await this.rentRepo
+            .createQueryBuilder("rent")
+            .leftJoin("rent.car", "car")
+            .select("car.brand", "brand")
+            .addSelect("COUNT(rent.rentId)", "count")
+            .groupBy("car.brand")
+            .getRawMany();
+
+        const counts = rents.map(item => parseInt(item.count));
+        return {
+            countRent: counts
+        }
+    }
+
+
+    async getRentStatusCounts(): Promise<number[]> {
+        const pendingCount = await this.rentRepo.count({ where: { rentStatus: 'pending' } });
+        const readyCount = await this.rentRepo.count({ where: { rentStatus: 'ready' } });
+        const ongoingCount = await this.rentRepo.count({ where: { rentStatus: 'ongoing' } });
+        const cancelCount = await this.rentRepo.count({ where: { rentStatus: 'cancel' } });
+        const finishCount = await this.rentRepo.count({ where: { rentStatus: 'finish' } });
+
+        return [pendingCount, readyCount, ongoingCount, cancelCount, finishCount];
     }
 
     async createNewRent(body: CreateNewRentDTO): Promise<Rent> {
@@ -73,11 +99,11 @@ export class RentService {
         rent.rentStatus = 'pending';
 
         if (body.voucherId && body.voucherId !== 0) {
-            const voucher = { voucherId: body.voucherId } as Voucher;
-            rent.voucher = voucher;
+            const voucher = { voucherOwnerId: body.voucherId } as VoucherOwner;
+            rent.voucherOwner = voucher;
         }
         if (body.voucherId === 0) {
-            rent.voucher = null
+            rent.voucherOwner = null
         }
         try {
             const savedRent = await this.rentRepo.save(rent);
@@ -139,7 +165,7 @@ export class RentService {
                 where: {
                     rentId: rentId
                 },
-                relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment', 'voucher']
+                relations: ['user', 'car', 'car.images', 'car.user', 'payment', 'voucherOwner.voucher']
             });
             return trip
         }
@@ -183,7 +209,7 @@ export class RentService {
                         user: trip.user,
                         car: trip.car,
                         payment: trip.payment,
-                        voucher: trip.voucher
+                        voucherOwner: trip.voucherOwner
                     };
                 }));
             return processedTrips;
@@ -199,7 +225,7 @@ export class RentService {
             let allTrip = await this.rentRepo.find({
                 relations: ['user', 'car', 'car.images', 'payment'],
                 where: {
-                    car: { owners: { user: { userId: userId } } }
+                    car: { user: { userId: userId } }
                 },
                 order: {
                     car: {
@@ -227,7 +253,7 @@ export class RentService {
                         user: trip.user,
                         car: trip.car,
                         payment: trip.payment,
-                        voucher: trip.voucher
+                        voucherOwner: trip.voucherOwner
                     };
                 }));
             return processedTrips;
@@ -243,13 +269,13 @@ export class RentService {
         try {
             let trip = await this.rentRepo.findOne({
                 where: { rentId: rentId },
-                relations: ['voucher']
+                relations: ['voucherOwner.voucher']
             });
             if (!trip) {
                 throw new HttpException('Trip not found', HttpStatus.NO_CONTENT)
             }
-            if (trip.voucher && trip.voucher.voucherId) {
-                await this.voucherService.repayVoucher(trip.voucher.voucherId)
+            if (trip.voucherOwner && trip.voucherOwner.voucherOwnerId) {
+                await this.voucherService.repayVoucher(trip.voucherOwner.voucherOwnerId)
             }
             trip.rentStatus = 'cancel'
             return await this.rentRepo.save(trip)
@@ -311,7 +337,7 @@ export class RentService {
             let trips = []
             if (city === "tatCa") {
                 trips = await this.rentRepo.find({
-                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment', 'voucher'],
+                    relations: ['user', 'car', 'car.images', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         rentStatus: Not(In(['cancel', 'finish']))
                     },
@@ -326,7 +352,7 @@ export class RentService {
             }
             else {
                 trips = await this.rentRepo.find({
-                    relations: ['user', 'car', 'car.images', 'car.owners.user', 'payment', 'voucher'],
+                    relations: ['user', 'car', 'car.images', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         car: {
                             location: Like(`%${city}%`)
@@ -351,7 +377,7 @@ export class RentService {
                         trip.car.images = [trip.car.images[0]];
                     }
                     delete trip.user.password;
-                    delete trip.car.owners.user.password;
+                    delete trip.car.user.password;
                     return {
                         rentId: trip.rentId,
                         rentBeginDate: trip.rentBeginDate,
@@ -361,7 +387,7 @@ export class RentService {
                         user: trip.user,
                         car: trip.car,
                         payment: trip.payment,
-                        voucher: trip.voucher
+                        voucherOwner: trip.voucherOwner
                     };
                 }));
             return processedTrips;
@@ -377,7 +403,7 @@ export class RentService {
             let trips = []
             if (city === "tatCa") {
                 trips = await this.rentRepo.find({
-                    relations: ['car.images', 'user', 'car', 'car.owners.user', 'payment', 'voucher'],
+                    relations: ['car.images', 'user', 'car', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         rentStatus: Not(In(['pending', 'ongoing', 'ready']))
                     },
@@ -392,7 +418,7 @@ export class RentService {
             }
             else {
                 trips = await this.rentRepo.find({
-                    relations: ['car.images', 'user', 'car', 'car.owners.user', 'payment', 'voucher'],
+                    relations: ['car.images', 'user', 'car', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         car: {
                             location: Like(`%${city}%`)
@@ -417,7 +443,7 @@ export class RentService {
                         trip.car.images = [trip.car.images[0]];
                     }
                     delete trip.user.password;
-                    delete trip.car.owners.user.password;
+                    delete trip.car.user.password;
                     return {
                         rentId: trip.rentId,
                         rentBeginDate: trip.rentBeginDate,
@@ -427,7 +453,7 @@ export class RentService {
                         user: trip.user,
                         car: trip.car,
                         payment: trip.payment,
-                        voucher: trip.voucher
+                        voucherOwner: trip.voucherOwner
                     };
                 }));
             return processedTrips;
@@ -436,5 +462,29 @@ export class RentService {
             console.log(e);
             throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    async deleteRentByCarId(carId: number): Promise<Rent[]> {
+        let rents = await this.rentRepo.find({
+            where: { car: { carId: carId } }
+        })
+        if (!rents) {
+            throw new HttpException('Rent not found', HttpStatus.NO_CONTENT)
+        }
+        return await this.rentRepo.remove(rents)
+    }
+
+    async deleteRentByUserId(userId: number): Promise<Rent[]> {
+        let rents = await this.rentRepo.find({
+            where: { user: { userId: userId } }
+        })
+        return await this.rentRepo.remove(rents)
+    }
+
+    async countRentOfUserId(userId: number): Promise<number> {
+        let cnt = await this.rentRepo.count({
+            where: { user: { userId: userId } }
+        })
+        return cnt
     }
 }
