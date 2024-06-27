@@ -51,6 +51,11 @@ export class CarService {
         let cars = await this.carRepo.find({
             where: { user: { userId: userId } },
             relations: ['images', 'carFeatures.feature', 'user'],
+            order: {
+                images: {
+                    imageId: 'ASC'
+                }
+            }
         });
         if (!cars || cars.length === 0) {
             throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
@@ -62,6 +67,11 @@ export class CarService {
         let cars = await this.carRepo.findOne({
             where: { carId: carId },
             relations: ['images', 'carFeatures.feature', 'user'],
+            order: {
+                images: {
+                    imageId: 'ASC'
+                }
+            }
         });
         if (!cars) {
             throw new HttpException('You havenot car', HttpStatus.NOT_FOUND);
@@ -88,6 +98,11 @@ export class CarService {
             if (userId !== 0) {
                 cars = await this.carRepo.find({
                     relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    order: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    },
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
@@ -100,6 +115,11 @@ export class CarService {
             else {
                 cars = await this.carRepo.find({
                     relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    order: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    },
                     where: {
                         location: Like(`%${city}%`),
                         status: Not("Approving"),
@@ -138,11 +158,21 @@ export class CarService {
             if (city === "tatCa") {
                 cars = await this.carRepo.find({
                     relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    order: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    }
                 });
             }
             else {
                 cars = await this.carRepo.find({
                     relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                    order: {
+                        images: {
+                            imageId: 'ASC'
+                        }
+                    },
                     where: {
                         location: Like(`%${city}%`),
                     }
@@ -397,36 +427,52 @@ export class CarService {
 
     convertToDate(dateString: string): Date {
         const [day, month, year] = dateString.split('/').map(Number);
-        return new Date(year, month - 1, day); // Month is 0-based in JavaScript Date
+        return new Date(year, month - 1, day);
     }
 
 
-    async findAllCar(city: string, userId: number, beginDate: string, endDate: string): Promise<Car[]> {
+    async findAllCar(query: any): Promise<Car[]> {
         try {
+            const { city, userId, beginDate, endDate, brand, transmission, fuelType } = query;
             let cars: Car[] = [];
-
-            // Chuyển đổi chuỗi ngày thành đối tượng Date
             const checkStartDate = this.convertToDate(beginDate);
             const checkEndDate = this.convertToDate(endDate);
 
-            // Kiểm tra điều kiện userId và lấy danh sách xe tương ứng
+            const whereConditions: any = {
+                location: Like(`%${city}%`),
+                status: Not("Approving"),
+            };
+
+            if (transmission && transmission !== "Tất cả") {
+                whereConditions.transmission = Like(`%${transmission}%`);
+            }
+
+            if (brand && brand !== "Tất cả") {
+                whereConditions.brand = Like(`%${brand}%`)
+            }
+            if (fuelType && fuelType !== "Tất cả") {
+                whereConditions.fuelType = Like(`%${fuelType}%`)
+            }
+
             if (userId !== 0) {
+                whereConditions.user = { userId: Not(userId) };
                 cars = await this.carRepo.find({
-                    relations: ['user', 'images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
-                    where: {
-                        location: Like(`%${city}%`),
-                        status: Not("Approving"),
-                        user: {
-                            userId: Not(userId)
+                    relations: ['user', 'images', 'rents'],
+                    where: whereConditions,
+                    order: {
+                        images: {
+                            imageId: 'ASC'
                         }
                     }
                 });
             } else {
                 cars = await this.carRepo.find({
-                    relations: ['images', 'rents'], // Load các mối quan hệ để sử dụng trong điều kiện
-                    where: {
-                        location: Like(`%${city}%`),
-                        status: Not("Approving"),
+                    relations: ['images', 'rents'],
+                    where: whereConditions,
+                    order: {
+                        images: {
+                            imageId: 'ASC'
+                        }
                     }
                 });
             }
@@ -435,20 +481,19 @@ export class CarService {
                 return cars;
             }
 
-            // Lọc các xe đã bị thuê trong khoảng thời gian yêu cầu
             cars = cars.filter(car => {
                 const overlappingRents = car.rents.filter(rent =>
-                    rent.rentStatus !== "finish" && rent.rentStatus !== "cancel" && // Lọc các trạng thái không ảnh hưởng
-                    (new Date(rent.rentBeginDate) < checkEndDate && new Date(rent.rentEndDate) > checkStartDate) // Kiểm tra trùng lặp thời gian
+                    rent.rentStatus !== "finish" && rent.rentStatus !== "cancel" &&
+                    (new Date(rent.rentBeginDate) < checkEndDate && new Date(rent.rentEndDate) > checkStartDate)
                 );
                 return overlappingRents.length === 0;
             });
 
-            // Chỉnh sửa danh sách ảnh và thêm thống kê cho mỗi xe
             const carsWithStats = cars.map(async car => {
                 if (car.images && car.images.length > 0) {
-                    car.images = [car.images[0]]; // Chỉ lấy ảnh đầu tiên
+                    car.images = [car.images[0]];
                 }
+                delete car.user.password;
 
                 const stats = await this.statisticCar(car.carId);
                 return {
@@ -473,6 +518,11 @@ export class CarService {
             let cars = []
             cars = await this.carRepo.find({
                 relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
+                order: {
+                    images: {
+                        imageId: 'ASC'
+                    }
+                }
             });
 
             if (!cars || cars.length === 0) {

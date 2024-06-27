@@ -30,6 +30,7 @@ export class AppService {
     console.log('Running cron job to update rent status');
     await this.rentService.updateRentStatus();
     await this.rentService.updateRentStatusFinish()
+    await this.rentService.updateRentStatusCancel()
   }
 
   getHello(): string {

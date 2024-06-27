@@ -11,13 +11,19 @@ import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
 import { EMAIL_USER, EMAIL_PASSWORD } from '../config';
 import { MailerService } from '@nestjs-modules/mailer';
+import { User } from '../user/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
     constructor(private readonly jwtService: JwtService,
         private readonly userService: UserService,
         private readonly adminService: AdminService,
-        private readonly mailerService: MailerService
+        private readonly mailerService: MailerService,
+
+        @InjectRepository(User)
+        private readonly userRepo: Repository<User>
 
     ) { }
 
@@ -70,5 +76,36 @@ export class AuthService {
               `,
             // { name: 'Recipient' },
         });
+    }
+
+    async findOrCreateUserFromGoogle(profile: any): Promise<User> {
+        let user = await this.userRepo.findOne({ where: { email: profile.email } });
+        if (user) {
+            return user;
+        }
+
+        const newUser = new User();
+        newUser.email = profile.email;
+        newUser.fullname = `${profile.firstName} ${profile.lastName}`;
+        newUser.googleId = profile.id;
+        newUser.joinDate = new Date();
+
+        const userr = await this.userRepo.save(newUser);
+        return plainToClass(User, userr);
+    }
+
+    async findOrCreateUserFromFacebook(profile: any): Promise<User> {
+        let user = await this.userRepo.findOne({ where: { email: profile.email } });
+        if (user) {
+            return user;
+        }
+        const newUser = new User();
+        newUser.email = profile.email;
+        newUser.fullname = `${profile.firstName} ${profile.lastName}`;
+        newUser.facebookId = profile.id;
+        newUser.joinDate = new Date();
+
+        const userr = await this.userRepo.save(newUser);
+        return plainToClass(User, userr);
     }
 }

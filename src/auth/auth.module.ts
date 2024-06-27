@@ -6,8 +6,10 @@ import { SECRET } from '../config';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AdminModule } from '../admin/admin.module';
-// import { APP_GUARD } from '@nestjs/core';
-// import { RolesGuard } from './roles.guard';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from './google.strategy';
+import { FacebookStrategy } from './facebook.strategy';
+import { UserService } from '../user/user.service';
 
 @Module({
     imports: [
@@ -15,9 +17,9 @@ import { AdminModule } from '../admin/admin.module';
             secret: SECRET,
             signOptions: { expiresIn: '1h' },
         }),
-        UserModule, AdminModule
+        UserModule, AdminModule, PassportModule
     ],
-    providers: [AuthService, JwtStrategy],
+    providers: [AuthService, JwtStrategy, GoogleStrategy, FacebookStrategy],
     controllers: [AuthController],
     exports: [AuthService],
 })

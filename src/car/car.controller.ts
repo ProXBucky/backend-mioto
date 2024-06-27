@@ -122,12 +122,9 @@ export class CarController {
     }
 
     @Get("/find")
-    async findAllCar(@Query('city') city: string, @Query('userId') userId: number, @Query('beginDate') beginDate: string, @Query('endDate') endDate: string): Promise<Car[]> {
-        if (isNaN(userId)) {
-            userId = 0
-        }
+    async findAllCar(@Query() query: any): Promise<Car[]> {
         try {
-            return await this.carService.findAllCar(city, userId, beginDate, endDate);
+            return await this.carService.findAllCar(query);
         } catch (e) {
             throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
         }

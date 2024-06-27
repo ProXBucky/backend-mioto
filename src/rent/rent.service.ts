@@ -35,8 +35,19 @@ export class RentService {
         }
     }
 
-    async countRent() {
-        return await this.rentRepo.count()
+    async updateRentStatusCancel() {
+        const today = new Date()
+        const rents = await this.rentRepo.find({
+            where: {
+                rentStatus: 'pending',
+                rentBeginDate: today
+            },
+        });
+
+        for (const rent of rents) {
+            rent.rentStatus = 'cancel';
+            await this.rentRepo.save(rent);
+        }
     }
 
     async updateRentStatusFinish() {
@@ -52,6 +63,10 @@ export class RentService {
             rent.rentStatus = 'finish';
             await this.rentRepo.save(rent);
         }
+    }
+
+    async countRent() {
+        return await this.rentRepo.count()
     }
 
     async getRentCountByBrand(): Promise<{ countRent: number[] }> {

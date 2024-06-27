@@ -18,6 +18,6 @@ import { VoucherModule } from '../voucher/voucher.module';
     CarModule, RentModule, VoucherModule],
   providers: [UserService, CloudinaryService],
   controllers: [UserController],
-  exports: [UserService]
+  exports: [UserService, TypeOrmModule]
 })
 export class UserModule { }

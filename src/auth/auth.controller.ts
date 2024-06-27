@@ -1,6 +1,7 @@
-import { Controller, Post, Body, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, HttpException, HttpStatus, Get, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDTO } from './dto/LoginUserDTO.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -55,5 +56,29 @@ export class AuthController {
     async resetPassword(@Body() email: { email: string }) {
         await this.authService.resetPassword(email.email);
         return { message: 'New password sent to your email' };
+    }
+
+    @Get('facebook')
+    @UseGuards(AuthGuard('facebook'))
+    async facebookLogin() {
+        // Redirects to Facebook login page
+    }
+
+    @Get('facebook/callback')
+    @UseGuards(AuthGuard('facebook'))
+    async facebookLoginCallback(@Req() req) {
+        return req.user;
+    }
+
+    @Get('google')
+    @UseGuards(AuthGuard('google'))
+    async googleLogin() {
+        // Redirects to Google login page
+    }
+
+    @Get('google/callback')
+    @UseGuards(AuthGuard('google'))
+    async googleLoginCallback(@Req() req) {
+        return req.user;
     }
 }
