@@ -27,6 +27,11 @@ export class BlogController {
         return this.blogService.getAllBlogs();
     }
 
+    @Get("/limit/:limit")
+    getAllBlogsWithLimit(@Param("limit") limit: number): Promise<Blog[]> {
+        return this.blogService.getAllBlogsWithLimit(limit);
+    }
+
     @Get('/:blogId')
     getOneBlog(@Param('blogId') blogId: number): Promise<Blog> {
         return this.blogService.getOneBlog(+blogId);

@@ -1,4 +1,5 @@
 export const BACKEND_PORT = 'http://localhost:3000'
+export const FRONTEND_PORT = 'http://127.0.0.1:5173'
 export const CLOUD_NAME = 'dqi9ub7dw'
 export const CLOUD_API_KEY = '135871654966123'
 export const CLOUD_API_SECRET = 'GDXm_IEKZyaz7LJ8PQiRlecvwBQ'

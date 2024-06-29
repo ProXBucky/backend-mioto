@@ -17,6 +17,8 @@ import { CarService } from '../car/car.service';
 import { ReportService } from '../report/report.service';
 import { ReviewService } from '../review/review.service';
 import { LikeService } from '../like/like.service';
+import { IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
+import { GetUserNotPasswordDTO } from './dto/GetUserNotPasswordDTO.dto';
 @Injectable()
 export class UserService {
 
@@ -60,9 +62,10 @@ export class UserService {
     }
 
 
-    async findAll(): Promise<User[]> {
-        let users = await this.userRepo.find()
-        return plainToClass(User, users)
+    async findAllPaginated(options: IPaginationOptions): Promise<Pagination<GetUserNotPasswordDTO>> {
+        const result = await paginate<User>(this.userRepo, options);
+        const items = result.items.map(user => plainToClass(GetUserNotPasswordDTO, user));
+        return { ...result, items };
     }
 
     async findOneByUserId(userId: number): Promise<User> {

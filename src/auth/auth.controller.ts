@@ -58,27 +58,19 @@ export class AuthController {
         return { message: 'New password sent to your email' };
     }
 
-    @Get('facebook')
-    @UseGuards(AuthGuard('facebook'))
-    async facebookLogin() {
-        // Redirects to Facebook login page
-    }
-
     @Get('facebook/callback')
     @UseGuards(AuthGuard('facebook'))
     async facebookLoginCallback(@Req() req) {
-        return req.user;
-    }
-
-    @Get('google')
-    @UseGuards(AuthGuard('google'))
-    async googleLogin() {
-        // Redirects to Google login page
+        const user = await this.authService.findOrCreateUserFromFacebook(req.user);
+        const token = await this.authService.createToken(user);
+        return { token, user };
     }
 
     @Get('google/callback')
     @UseGuards(AuthGuard('google'))
     async googleLoginCallback(@Req() req) {
-        return req.user;
+        const user = await this.authService.findOrCreateUserFromGoogle(req.user);
+        const token = await this.authService.createToken(user);
+        return { token, user };
     }
 }

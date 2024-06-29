@@ -7,6 +7,9 @@ import { ChangePasswordDTO } from './dto/ChangePasswordDTO.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { GetUserNotPasswordDTO } from './dto/GetUserNotPasswordDTO.dto';
+import { BACKEND_PORT } from '../config';
 
 @Controller('user')
 export class UserController {
@@ -26,12 +29,20 @@ export class UserController {
     @Get()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('Staff', 'Admin')
-    findAll(): Promise<User[]> {
+    async findAllPaginated(
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10
+    ): Promise<Pagination<GetUserNotPasswordDTO>> {
         try {
-            return this.userService.findAll()
+            const options = {
+                page,
+                limit,
+                route: `${BACKEND_PORT}/user`,
+            };
+            return await this.userService.findAllPaginated(options);
         } catch (e) {
-            console.log(e)
-            throw new HttpException('Find all user fail', HttpStatus.BAD_REQUEST)
+            console.log(e);
+            throw new HttpException('Find all users failed', HttpStatus.BAD_REQUEST);
         }
     }
 

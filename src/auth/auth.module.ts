@@ -17,7 +17,8 @@ import { UserService } from '../user/user.service';
             secret: SECRET,
             signOptions: { expiresIn: '1h' },
         }),
-        UserModule, AdminModule, PassportModule
+        PassportModule.register({ defaultStrategy: 'jwt' }),
+        UserModule, AdminModule,
     ],
     providers: [AuthService, JwtStrategy, GoogleStrategy, FacebookStrategy],
     controllers: [AuthController],

@@ -39,13 +39,31 @@ export class BlogService {
 
     async getAllBlogs(): Promise<Blog[]> {
         let blogs = await this.blogRepository.find({
-            relations: ['admin']
+            relations: ['admin'],
+            order: {
+                publishDate: "ASC"
+            }
         })
         if (!blogs || blogs.length === 0) {
             throw new HttpException("No Blog", HttpStatus.NO_CONTENT)
         }
         return blogs;
     }
+
+    async getAllBlogsWithLimit(limit: number): Promise<Blog[]> {
+        let blogs = await this.blogRepository.find({
+            take: limit,
+            order: {
+                publishDate: "ASC"
+            }
+        })
+        if (!blogs || blogs.length === 0) {
+            throw new HttpException("No Blog", HttpStatus.NO_CONTENT)
+        }
+        return blogs;
+    }
+
+
 
     async getOneBlog(id: number): Promise<Blog> {
         let blog = this.blogRepository.findOne({

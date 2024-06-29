@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rent } from './rent.entity';
-import { In, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { FindManyOptions, In, LessThan, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
@@ -25,7 +25,7 @@ export class RentService {
         const rents = await this.rentRepo.find({
             where: {
                 rentStatus: 'ready',
-                rentBeginDate: today
+                rentBeginDate: LessThanOrEqual(today)
             },
         });
 
@@ -40,7 +40,7 @@ export class RentService {
         const rents = await this.rentRepo.find({
             where: {
                 rentStatus: 'pending',
-                rentBeginDate: today
+                rentBeginDate: LessThan(today)
             },
         });
 
@@ -55,7 +55,7 @@ export class RentService {
         const rents = await this.rentRepo.find({
             where: {
                 rentStatus: 'ongoing',
-                rentEndDate: today
+                rentEndDate: LessThanOrEqual(today),
             },
         });
 
@@ -352,11 +352,12 @@ export class RentService {
             let trips = []
             if (city === "tatCa") {
                 trips = await this.rentRepo.find({
-                    relations: ['user', 'car', 'car.images', 'car.user', 'payment', 'voucherOwner.voucher'],
+                    relations: ['car.images', 'user', 'car', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         rentStatus: Not(In(['cancel', 'finish']))
                     },
                     order: {
+                        rentBeginDate: 'DESC',
                         car: {
                             images: {
                                 imageId: 'ASC'
@@ -367,7 +368,7 @@ export class RentService {
             }
             else {
                 trips = await this.rentRepo.find({
-                    relations: ['user', 'car', 'car.images', 'car.user', 'payment', 'voucherOwner.voucher'],
+                    relations: ['car.images', 'user', 'car', 'car.user', 'payment', 'voucherOwner.voucher'],
                     where: {
                         car: {
                             location: Like(`%${city}%`)
@@ -375,6 +376,7 @@ export class RentService {
                         rentStatus: Not(In(['cancel', 'finish']))
                     },
                     order: {
+                        rentBeginDate: 'DESC',
                         car: {
                             images: {
                                 imageId: 'ASC'
@@ -413,7 +415,8 @@ export class RentService {
         }
     }
 
-    async getAllTripFinishByCity(city: string): Promise<Rent[]> {
+
+    async getAllTripFinishedByCity(city: string): Promise<Rent[]> {
         try {
             let trips = []
             if (city === "tatCa") {
@@ -423,11 +426,12 @@ export class RentService {
                         rentStatus: Not(In(['pending', 'ongoing', 'ready']))
                     },
                     order: {
+                        rentBeginDate: 'DESC',
                         car: {
                             images: {
                                 imageId: 'ASC'
                             }
-                        }
+                        },
                     }
                 });
             }
@@ -441,11 +445,12 @@ export class RentService {
                         rentStatus: Not(In(['pending', 'ongoing', 'ready']))
                     },
                     order: {
+                        rentBeginDate: 'DESC',
                         car: {
                             images: {
                                 imageId: 'ASC'
                             }
-                        }
+                        },
                     }
                 });
             }
@@ -502,4 +507,44 @@ export class RentService {
         })
         return cnt
     }
+
+    async statisticIncome(): Promise<{ labels: string[], data: number[] }> {
+        try {
+            const rents = await this.rentRepo.find({
+                where: { rentStatus: 'finish' },
+                relations: ['payment'],
+            });
+
+            const incomeMap: { [key: string]: number } = {};
+
+            rents.forEach(rent => {
+                const rentBeginDate = new Date(rent.rentBeginDate);
+                const monthYear = rentBeginDate.toISOString().substring(0, 7); // Chuyển đổi về định dạng YYYY-MM
+                const totalIncome = rent.payment ? rent.payment.paymentAmount : 0;
+
+                if (incomeMap[monthYear]) {
+                    incomeMap[monthYear] += totalIncome;
+                } else {
+                    incomeMap[monthYear] = totalIncome;
+                }
+            });
+
+            const labels = Object.keys(incomeMap).sort().map(label => {
+                const [year, month] = label.split('-');
+                return `${month}/${year}`;
+            });
+            const data = labels.map(label => {
+                const [month, year] = label.split('/');
+                return incomeMap[`${year}-${month}`];
+            });
+
+            return { labels, data };
+        } catch (error) {
+            console.error('Error fetching income by month:', error);
+            throw new InternalServerErrorException('Failed to fetch income by month');
+        }
+    }
+
+
+
 }

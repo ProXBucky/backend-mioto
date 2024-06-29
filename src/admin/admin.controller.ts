@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDTO } from './dto/CreateAdminDto.dto';
 import { Admin } from './admin.entity';
@@ -7,6 +7,8 @@ import { GetAdminDTO } from './dto/GetAdminDTO.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { BACKEND_PORT } from '../config';
 
 @Controller('admin')
 export class AdminController {
@@ -28,12 +30,20 @@ export class AdminController {
     @Get()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('Staff', 'Admin')
-    findAll(): Promise<GetAdminDTO[]> {
+    async findAll(
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10
+    ): Promise<Pagination<GetAdminDTO>> {
         try {
-            return this.adminService.findAll()
+            const options = {
+                page,
+                limit,
+                route: `${BACKEND_PORT}/admin`,
+            };
+            return await this.adminService.findAll(options);
         } catch (e) {
-            console.log(e)
-            throw new HttpException('Find all admin fail', HttpStatus.BAD_REQUEST)
+            console.log(e);
+            throw new HttpException('Find all users failed', HttpStatus.BAD_REQUEST);
         }
     }
 

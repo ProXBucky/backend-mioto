@@ -100,12 +100,13 @@ export class RentController {
         }
     }
 
+
     @Get("/all-trip-finish-by-city/:city")
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles("Admin", "Staff")
-    async getAllTripFinishByCity(@Param('city') city: string): Promise<Rent[]> {
+    async getAllTripFinishedByCity(@Param('city') city: string): Promise<Rent[]> {
         try {
-            return await this.rentService.getAllTripFinishByCity(city);
+            return await this.rentService.getAllTripFinishedByCity(city);
         } catch (e) {
             console.log(e)
             throw new HttpException('Get all trip fail', HttpStatus.NOT_FOUND);
@@ -116,6 +117,18 @@ export class RentController {
     async countRentOfUserId(@Param('userId') userId: number): Promise<number> {
         try {
             return await this.rentService.countRentOfUserId(userId);
+        } catch (e) {
+            console.log(e)
+            throw new HttpException('Count rent fail', HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Get("/income")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Admin", "Staff")
+    async statisticIncome(): Promise<{ labels: string[], data: number[] }> {
+        try {
+            return await this.rentService.statisticIncome();
         } catch (e) {
             console.log(e)
             throw new HttpException('Count rent fail', HttpStatus.NOT_FOUND);

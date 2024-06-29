@@ -9,6 +9,7 @@ import { GetAdminDTO } from './dto/GetAdminDTO.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import * as argon2 from 'argon2';
 import { BlogService } from '../blog/blog.service';
+import { IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class AdminService {
@@ -34,9 +35,11 @@ export class AdminService {
         if (checkEmail) {
             throw new HttpException('Email is exist', HttpStatus.CONFLICT)
         }
+        const hashedNewPassword = await argon2.hash(data.password);
+
         let newAdmin = new Admin
         newAdmin.username = data.username
-        newAdmin.password = data.password
+        newAdmin.password = hashedNewPassword
         newAdmin.fullname = data.fullname
         newAdmin.phone = data.phone
         newAdmin.email = data.email
@@ -54,10 +57,10 @@ export class AdminService {
 
     }
 
-
-    async findAll(): Promise<GetAdminDTO[]> {
-        let admins = await this.adminRepo.find()
-        return plainToClass(GetAdminDTO, admins)
+    async findAll(options: IPaginationOptions): Promise<Pagination<GetAdminDTO>> {
+        const result = await paginate<Admin>(this.adminRepo, options);
+        const items = result.items.map(admin => plainToClass(GetAdminDTO, admin));
+        return { ...result, items };
     }
 
     async findOneByAdminId(adminId: number): Promise<GetAdminDTO> {
