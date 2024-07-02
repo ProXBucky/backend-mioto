@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Not, Repository } from 'typeorm';
 import { Car } from './car.entity';
@@ -24,7 +24,8 @@ export class CarService {
         private readonly carHasFeatureService: CarHasFeatureService,
         private readonly carImageService: ImageService,
         private readonly reviewService: ReviewService,
-        private readonly rentService: RentService,
+        @Inject(forwardRef(() => RentService))
+        private rentService: RentService,
         private readonly reportService: ReportService,
         private readonly likeService: LikeService
     ) { }

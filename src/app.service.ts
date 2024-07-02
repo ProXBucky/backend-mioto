@@ -47,8 +47,8 @@ export class AppService {
     let reportC = await this.reportService.countReport()
     let reviewC = await this.reviewService.countReview()
     let chartStatus = await this.rentService.getRentStatusCounts()
-    let res = await this.carService.getCarCountByBrand()
     let res1 = await this.rentService.getRentCountByBrand()
+    let res = await this.carService.getCarCountByBrand()
     return {
       adminCount: adminC,
       userCount: userC,

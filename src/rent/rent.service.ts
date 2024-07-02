@@ -1,13 +1,14 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rent } from './rent.entity';
-import { FindManyOptions, In, LessThan, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { In, LessThan, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { CreateNewRentDTO } from './dto/CreateNewRentDTO.dto';
 import { PaymentService } from '../payment/payment.service';
 import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
 import { VoucherService } from '../voucher/voucher.service';
 import { VoucherOwner } from '../voucher/voucherOwner.entity';
+import { CarService } from '../car/car.service';
 
 
 @Injectable()
@@ -15,8 +16,12 @@ export class RentService {
     constructor(
         @InjectRepository(Rent)
         private readonly rentRepo: Repository<Rent>,
+        @Inject(forwardRef(() => CarService))
+        private readonly carService: CarService,
         private readonly paymentService: PaymentService,
-        private readonly voucherService: VoucherService
+        private readonly voucherService: VoucherService,
+
+
     ) { }
 
     // Nửa đêm sẽ update
@@ -70,6 +75,9 @@ export class RentService {
     }
 
     async getRentCountByBrand(): Promise<{ countRent: number[] }> {
+        const cars = await this.carService.getCarCountByBrand()
+        const brands = (cars).brand.map(item => item);
+
         const rents = await this.rentRepo
             .createQueryBuilder("rent")
             .leftJoin("rent.car", "car")
@@ -78,7 +86,10 @@ export class RentService {
             .groupBy("car.brand")
             .getRawMany();
 
-        const counts = rents.map(item => parseInt(item.count));
+        const counts = brands.map(brand => {
+            const rentRecord = rents.find(item => item.brand === brand);
+            return rentRecord ? parseInt(rentRecord.count) : 0;
+        });
         return {
             countRent: counts
         }
