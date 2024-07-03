@@ -300,6 +300,9 @@ export class RentService {
             if (!trip) {
                 throw new HttpException('Trip not found', HttpStatus.NO_CONTENT)
             }
+            if (trip.rentStatus === "ongoing") {
+                throw new HttpException('Trip is ongoing', HttpStatus.CONFLICT)
+            }
             if (trip.voucherOwner && trip.voucherOwner.voucherOwnerId) {
                 await this.voucherService.repayVoucher(trip.voucherOwner.voucherOwnerId)
             }
@@ -308,6 +311,9 @@ export class RentService {
         }
         catch (error) {
             console.error('Error cancel new rent:', error);
+            if (error instanceof HttpException) {
+                throw error; // Re-throw HttpException as is
+            }
             throw new HttpException('Error cancel new rent', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

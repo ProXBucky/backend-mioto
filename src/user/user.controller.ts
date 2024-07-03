@@ -46,6 +46,18 @@ export class UserController {
         }
     }
 
+    @Get("/get-all-by-admin")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('Staff', 'Admin')
+    async findAlls(): Promise<GetUserNotPasswordDTO[]> {
+        try {
+            return await this.userService.findAlls();
+        } catch (e) {
+            console.log(e);
+            throw new HttpException('Find all users failed', HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @Get("/:userId")
     @UseGuards(JwtAuthGuard)
     findOneByUserId(@Param('userId') id: number): Promise<User> {

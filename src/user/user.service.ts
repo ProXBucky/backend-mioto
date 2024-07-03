@@ -68,6 +68,11 @@ export class UserService {
         return { ...result, items };
     }
 
+    async findAlls(): Promise<GetUserNotPasswordDTO[]> {
+        const result = await this.userRepo.find()
+        return result.map(user => plainToClass(GetUserNotPasswordDTO, user));
+    }
+
     async findOneByUserId(userId: number): Promise<User> {
         let userFinded = await this.userRepo.findOne({ where: { userId: userId } })
         if (!userFinded) {

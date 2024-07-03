@@ -62,11 +62,7 @@ export class RentController {
     @Put("/cancel-trip/:rentId")
     @UseGuards(JwtAuthGuard)
     cancelRentByRentId(@Param('rentId') rentId: number): Promise<Rent> {
-        try {
-            return this.rentService.cancelRentByRentId(rentId)
-        } catch (e) {
-            throw new HttpException('Cancel trip failed', HttpStatus.NOT_FOUND)
-        }
+        return this.rentService.cancelRentByRentId(rentId)
     }
 
     @Put("/accept-trip/:rentId")
