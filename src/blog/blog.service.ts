@@ -54,7 +54,7 @@ export class BlogService {
         let blogs = await this.blogRepository.find({
             take: limit,
             order: {
-                publishDate: "ASC"
+                publishDate: "DESC"
             }
         })
         if (!blogs || blogs.length === 0) {

@@ -23,6 +23,9 @@ export class Voucher {
     @Column({ type: 'date' })
     expireDate: Date;
 
+    @Column()
+    status: string;
+
     @OneToMany(() => VoucherOwner, voucherOwner => voucherOwner.voucher)
     voucherOwners: VoucherOwner[];
 }

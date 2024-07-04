@@ -102,6 +102,9 @@ export class UserService {
             userFinded.gender = data.gender
         }
         if (data.avatarImage) {
+            if (userFinded.avatarImageID) {
+                await this.cloudinaryService.deleteImage(userFinded.avatarImageID)
+            }
             let res = await this.cloudinaryService.uploadImage(data.avatarImage)
             if (res && res.public_id && res.secure_url) {
                 userFinded.avatarImage = res.secure_url
@@ -184,6 +187,7 @@ export class UserService {
         if (!user) {
             throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
         }
+        await this.cloudinaryService.deleteImage(user.avatarImageID)
         await this.addressService.deleteAddressByUserId(user.userId)
         await this.licenseService.deleteLicenseByUserId(user.userId)
         await this.reportService.deleteReportByUserId(user.userId)

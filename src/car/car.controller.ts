@@ -32,12 +32,12 @@ export class CarController {
 
 
     @Get("/all-car-by-city")
-    async getAllCarByCity(@Query('city') city: string, @Query('userId') userId: number): Promise<Car[]> {
+    async getAllCarByCity(@Query('city') city: string, @Query('userId') userId: number, @Query('limit') limit: number): Promise<Car[]> {
         if (isNaN(userId)) {
             throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
         }
         try {
-            return await this.carService.getAllCarByCity(city, userId);
+            return await this.carService.getAllCarByCity(city, userId, +limit);
         } catch (e) {
             throw new HttpException('Get all car fail', HttpStatus.NOT_FOUND);
         }

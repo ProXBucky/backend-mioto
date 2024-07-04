@@ -135,10 +135,10 @@ export class User {
     @Column({ nullable: true, type: 'date' })
     dob: Date;
 
-    @Column({ nullable: true, unique: true })
+    @Column({ nullable: true })
     googleId: string;
 
-    @Column({ nullable: true, unique: true })
+    @Column({ nullable: true })
     facebookId: string;
 
     @OneToMany(() => UserAddress, userAddress => userAddress.user)

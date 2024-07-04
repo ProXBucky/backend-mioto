@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { VoucherService } from './voucher.service';
 import { Voucher } from './voucher.entity';
 import { CreateNewVoucherDTO } from './dto/CreateNewVoucherDTO.dto';
@@ -37,7 +37,7 @@ export class VoucherController {
         }
     }
 
-    @Delete("/:voucherId")
+    @Put("/:voucherId")
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('Staff', 'Admin')
     deleteVoucherByID(@Param("voucherId") voucherId: number): Promise<Voucher> {

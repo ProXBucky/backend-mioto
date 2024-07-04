@@ -25,6 +25,9 @@ export class LicenseService {
 
 
     async postLicense(userId: number, data: CreateLicenseDTO): Promise<UserLicense> {
+        if (!data.fileUpload || !data.licenseNumber) {
+            throw new HttpException("Missing value", HttpStatus.BAD_REQUEST)
+        }
         let licenseFind = await this.userLicenseRepo.findOne({ where: { user: { userId } } })
         if (!licenseFind) {
             let userLicense = new UserLicense
@@ -34,7 +37,7 @@ export class LicenseService {
             user.userId = userId;
             userLicense.user = user;
 
-            let res = await this.cloudinaryService.uploadImage(data.fileUpload)
+            let res = await this.cloudinaryService.uploadImageLicense(data.fileUpload)
             if (res && res.public_id && res.secure_url) {
                 userLicense.fileUpload = res.secure_url
                 userLicense.fileUploadID = res.public_id

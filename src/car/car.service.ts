@@ -93,46 +93,102 @@ export class CarService {
         }
     }
 
-    async getAllCarByCity(city: string, userId: number): Promise<Car[]> {
+    // async getAllCarByCity(city: string, userId: number, limit: number): Promise<Car[]> {
+    //     try {
+    //         let cars = []
+    //         if (userId !== 0) {
+    //             cars = await this.carRepo.find({
+    //                 relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
+    //                 order: {
+    //                     images: {
+    //                         imageId: 'ASC'
+    //                     }
+    //                 },
+    //                 where: {
+    //                     location: Like(`%${city}%`),
+    //                     status: Not("Approving"),
+    //                     user: {
+    //                         userId: Not(userId)
+    //                     }
+    //                 },
+    //                 take: limit
+    //             });
+    //         }
+    //         else {
+    //             cars = await this.carRepo.find({
+    //                 relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
+    //                 order: {
+    //                     images: {
+    //                         imageId: 'ASC'
+    //                     }
+    //                 },
+    //                 where: {
+    //                     location: Like(`%${city}%`),
+    //                     status: Not("Approving"),
+    //                 },
+    //                 take: limit,
+    //             });
+    //         }
+    //         if (!cars || cars.length === 0) {
+    //             return cars
+    //         }
+    //         cars = cars.map(async car => {
+    //             if (car.images && car.images.length > 0) {
+    //                 car.images = [car.images[0]];
+    //             }
+
+    //             let stats = await this.statisticCar(car.carId);
+    //             return {
+    //                 ...car,
+    //                 stats: {
+    //                     star: stats.star,
+    //                     tripCount: stats.tripCount,
+    //                     reviewCount: stats.reviewCount,
+    //                 }
+    //             };
+    //         });
+    //         return Promise.all(cars);
+    //     }
+    //     catch (e) {
+    //         console.log(e);
+    //         throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+
+    async getAllCarByCity(city: string, userId: number, limit: number): Promise<Car[]> {
         try {
-            let cars = []
+            let cars = [];
+            const whereConditions: any = {
+                location: Like(`%${city}%`),
+                status: Not("Approving")
+            };
+
             if (userId !== 0) {
-                cars = await this.carRepo.find({
-                    relations: ['user', 'images'], // Load các mối quan hệ để sử dụng trong điều kiện
-                    order: {
-                        images: {
-                            imageId: 'ASC'
-                        }
-                    },
-                    where: {
-                        location: Like(`%${city}%`),
-                        status: Not("Approving"),
-                        user: {
-                            userId: Not(userId)
-                        }
-                    }
-                });
+                whereConditions.user = { userId: Not(userId) };
             }
-            else {
-                cars = await this.carRepo.find({
-                    relations: ['images', 'user'], // Load các mối quan hệ để sử dụng trong điều kiện
-                    order: {
-                        images: {
-                            imageId: 'ASC'
-                        }
-                    },
-                    where: {
-                        location: Like(`%${city}%`),
-                        status: Not("Approving"),
+
+            // Lấy tất cả các bản ghi thỏa mãn điều kiện
+            cars = await this.carRepo.find({
+                relations: ['user', 'images'],
+                order: {
+                    images: {
+                        imageId: 'ASC'
                     }
-                });
-            }
+                },
+                where: whereConditions
+            });
+
             if (!cars || cars.length === 0) {
-                return cars
+                return cars;
             }
-            cars = cars.map(async car => {
+
+            const carsWithStats = await Promise.all(cars.map(async car => {
                 if (car.images && car.images.length > 0) {
                     car.images = [car.images[0]];
+                }
+
+                if (car.user) {
+                    delete car.user.password;
                 }
 
                 let stats = await this.statisticCar(car.carId);
@@ -144,10 +200,11 @@ export class CarService {
                         reviewCount: stats.reviewCount,
                     }
                 };
-            });
-            return Promise.all(cars);
-        }
-        catch (e) {
+            }));
+
+            // Giới hạn số lượng bản ghi trả về theo giá trị limit
+            return carsWithStats.slice(0, limit);
+        } catch (e) {
             console.log(e);
             throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -434,7 +491,7 @@ export class CarService {
 
     async findAllCar(query: any): Promise<Car[]> {
         try {
-            const { city, userId, beginDate, endDate, brand, transmission, fuelType } = query;
+            const { city, userId, beginDate, endDate, brand, transmission, fuelType, limit } = query;
             let cars: Car[] = [];
             const checkStartDate = this.convertToDate(beginDate);
             const checkEndDate = this.convertToDate(endDate);
@@ -464,7 +521,7 @@ export class CarService {
                         images: {
                             imageId: 'ASC'
                         }
-                    }
+                    },
                 });
             } else {
                 cars = await this.carRepo.find({
@@ -474,7 +531,7 @@ export class CarService {
                         images: {
                             imageId: 'ASC'
                         }
-                    }
+                    },
                 });
             }
 

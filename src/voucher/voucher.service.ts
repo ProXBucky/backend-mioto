@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Voucher } from './voucher.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateNewVoucherDTO } from './dto/CreateNewVoucherDTO.dto';
 import { User } from '../user/user.entity';
 import { VoucherOwner } from './voucherOwner.entity';
@@ -30,11 +30,15 @@ export class VoucherService {
         newVoucher.type = body.type
         newVoucher.expireDate = body.expireDate
         newVoucher.discountPercent = body.discountPercent
+        newVoucher.status = "Active"
         return await this.voucherRepo.save(newVoucher)
     }
 
     async getAllVoucher(): Promise<Voucher[]> {
         let allVoucher = await this.voucherRepo.find({
+            where: {
+                status: "Active"
+            },
             order: {
                 expireDate: 'ASC'
             },
@@ -52,12 +56,21 @@ export class VoucherService {
         if (!voucher) {
             throw new HttpException("Voucher not found", HttpStatus.NOT_FOUND)
         }
-        return await this.voucherRepo.remove(voucher)
+        let voucherFind = await this.voucherOwnerRepo.find({ where: { voucher: { voucherId: voucher.voucherId } } })
+        voucherFind.forEach(voucherOwn => {
+            voucherOwn.status = "Inactive";
+        });
+        await this.voucherOwnerRepo.save(voucherFind)
+        voucher.status = "Inactive"
+        return await this.voucherRepo.save(voucher)
     }
 
     async getAllVoucherByUserId(userId: number): Promise<VoucherOwner[]> {
         let allVoucher = await this.voucherOwnerRepo.find({
-            where: { user: { userId: userId } },
+            where: {
+                user: { userId: userId },
+                status: Not("Inactive")
+            },
             relations: ['voucher']
         })
         if (!allVoucher || allVoucher.length == 0) {

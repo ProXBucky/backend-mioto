@@ -22,7 +22,6 @@ export class PaymentService {
         let payment = new Payment
         payment.paymentAmount = body.paymentAmount
         payment.voucherAmount = body.voucherAmount
-        payment.paymentStatus = "pending"
         payment.paymentDate = new Date()
         payment.rent = rent
 

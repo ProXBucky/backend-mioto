@@ -12,9 +12,6 @@ export class Payment {
     @Column()
     voucherAmount: number;
 
-    @Column()
-    paymentStatus: string;
-
     @Column({ type: 'date' })
     paymentDate: Date;
 
