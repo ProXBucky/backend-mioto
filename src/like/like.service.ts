@@ -94,7 +94,14 @@ export class LikeService {
     async getAllCarLiked(userId: number): Promise<GetLikeDTO[]> {
         let allCarliked = await this.likeRepo.find({
             where: { user: { userId: userId } },
-            relations: ['car', 'car.images', 'car.user']
+            relations: ['car', 'car.images', 'car.user'],
+            order: {
+                car: {
+                    images: {
+                        imageId: "DESC"
+                    }
+                }
+            }
         })
         if (!allCarliked) {
             throw new HttpException('Error system', HttpStatus.BAD_REQUEST)

@@ -33,10 +33,6 @@ export class AppService {
     await this.rentService.updateRentStatusCancel()
   }
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async statistic() {
     let adminC = await this.adminService.countAdmin()
     let userC = await this.userService.countUser()

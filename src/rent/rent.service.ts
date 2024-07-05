@@ -303,9 +303,6 @@ export class RentService {
             if (trip.rentStatus === "ongoing") {
                 throw new HttpException('Trip is ongoing', HttpStatus.CONFLICT)
             }
-            if (trip.voucherOwner && trip.voucherOwner.voucherOwnerId) {
-                await this.voucherService.repayVoucher(trip.voucherOwner.voucherOwnerId)
-            }
             trip.rentStatus = 'cancel'
             return await this.rentRepo.save(trip)
         }

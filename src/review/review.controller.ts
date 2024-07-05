@@ -30,8 +30,7 @@ export class ReviewController {
     }
 
     @Delete("/:reviewId")
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("Staff", "Admin")
+    @UseGuards(JwtAuthGuard)
     deleteReviewById(@Param('reviewId') reviewId: number): Promise<Review> {
         try {
             return this.reviewService.deleteReviewById(reviewId)

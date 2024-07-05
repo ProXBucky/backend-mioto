@@ -79,25 +79,14 @@ export class VoucherService {
         return allVoucher
     }
 
-    async useVoucher(voucherId: number): Promise<VoucherOwner> {
+    async useVoucher(voucherOwnerId: number): Promise<VoucherOwner> {
         let voucher = await this.voucherOwnerRepo.findOne({
-            where: { voucher: { voucherId: voucherId } }
+            where: { voucherOwnerId: voucherOwnerId }
         })
         if (!voucher) {
             throw new HttpException('You havenot voucher with this id', HttpStatus.NO_CONTENT)
         }
         voucher.status = "Used"
-        return await this.voucherOwnerRepo.save(voucher)
-    }
-
-    async repayVoucher(voucherId: number): Promise<VoucherOwner> {
-        let voucher = await this.voucherOwnerRepo.findOne({
-            where: { voucher: { voucherId: voucherId } }
-        })
-        if (!voucher) {
-            throw new HttpException('You havenot voucher with this id', HttpStatus.NO_CONTENT)
-        }
-        voucher.status = "NotUsed"
         return await this.voucherOwnerRepo.save(voucher)
     }
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { Report } from './report.entity';
 import { ReportCarDTO } from './dto/ReportCarDTO.dto';
@@ -29,6 +29,17 @@ export class ReportController {
             return this.reportService.getAllReports()
         } catch (e) {
             throw new HttpException('Report car failed', HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @Delete("/:reportId")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("Staff", "Admin")
+    deleteReviewById(@Param('reportId') reportId: number): Promise<Report> {
+        try {
+            return this.reportService.deleteReportById(reportId)
+        } catch (e) {
+            throw new HttpException('Delete report failed', HttpStatus.NOT_FOUND)
         }
     }
 

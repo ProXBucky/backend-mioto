@@ -71,4 +71,16 @@ export class ReportService {
             return reportDto;
         });
     }
+
+    async deleteReportById(reportId: number): Promise<Report> {
+        let report = await this.reportRepo.findOne({
+            where: { reportId: reportId }
+        })
+        if (!report) {
+            throw new HttpException("No report in DB", HttpStatus.NO_CONTENT)
+        }
+        return await this.reportRepo.remove(report)
+    }
+
+
 }

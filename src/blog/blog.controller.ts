@@ -47,7 +47,7 @@ export class BlogController {
 
     @Delete('/:blogId')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("Admin", "Staff")
+    @Roles("Admin")
     deleteBlog(@Param('blogId') blogId: number): Promise<Blog> {
         return this.blogService.deleteBlog(+blogId);
     }
