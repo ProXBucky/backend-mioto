@@ -38,7 +38,7 @@ export class AdminController {
             const options = {
                 page,
                 limit,
-                route: `${BACKEND_PORT}/admin`,
+                route: `http://localhost:${BACKEND_PORT}/admin`,
             };
             return await this.adminService.findAll(options);
         } catch (e) {

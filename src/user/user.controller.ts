@@ -37,7 +37,7 @@ export class UserController {
             const options = {
                 page,
                 limit,
-                route: `${BACKEND_PORT}/user`,
+                route: `http://localhost:${BACKEND_PORT}/user`,
             };
             return await this.userService.findAllPaginated(options);
         } catch (e) {
