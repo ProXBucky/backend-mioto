@@ -1,11 +1,9 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { Review } from './review.entity';
-import { ReviewCarDTO } from './dto/reviewCarDTO.dto';
 import { ReviewCarNotPasswordDTO } from './dto/ReviewCarNotPasswordDTO.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { ReviewCarDTO } from './dto/reviewCarDTO.dto';
 
 @Controller('review')
 export class ReviewController {
