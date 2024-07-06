@@ -6,7 +6,7 @@ import { User } from '../user/user.entity';
 import { Car } from '../car/car.entity';
 import { ReviewCarNotPasswordDTO } from './dto/ReviewCarNotPasswordDTO.dto';
 import { plainToInstance } from 'class-transformer';
-import { ReviewCarDTO } from './dto/reviewCarDTO.dto';
+import { ReviewCarDTO } from './dto/ReviewCarDTO.dto';
 
 @Injectable()
 export class ReviewService {

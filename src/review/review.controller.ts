@@ -3,7 +3,7 @@ import { ReviewService } from './review.service';
 import { Review } from './review.entity';
 import { ReviewCarNotPasswordDTO } from './dto/ReviewCarNotPasswordDTO.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ReviewCarDTO } from './dto/reviewCarDTO.dto';
+import { ReviewCarDTO } from './dto/ReviewCarDTO.dto';
 
 @Controller('review')
 export class ReviewController {
