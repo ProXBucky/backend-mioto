@@ -39,7 +39,7 @@ import { VoucherOwner } from './voucher/voucherOwner.entity';
 import { BlogModule } from './blog/blog.module';
 import { Blog } from './blog/blog.entity';
 import { ScheduleModule } from '@nestjs/schedule';
-import { DB_PASSWORD, DB_USER, EMAIL_PASSWORD, EMAIL_USER } from './config';
+import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, EMAIL_PASSWORD, EMAIL_USER } from './config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
@@ -52,11 +52,11 @@ import { join } from 'path';
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
+      host: DB_HOST,
+      port: DB_PORT,
       username: DB_USER,
       password: DB_PASSWORD,
-      database: 'miotoDB',
+      database: DB_NAME,
       entities: [Admin, Car, Feature, CarImage, Payment, Rent, Review, Voucher, Report, Like, UserAddress,
         UserLicense, User, CarHasFeature, VoucherOwner, Blog],
       synchronize: true,
