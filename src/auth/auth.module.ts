@@ -7,9 +7,6 @@ import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AdminModule } from '../admin/admin.module';
 import { PassportModule } from '@nestjs/passport';
-import { GoogleStrategy } from './google.strategy';
-import { FacebookStrategy } from './facebook.strategy';
-import { UserService } from '../user/user.service';
 
 @Module({
     imports: [
@@ -20,7 +17,7 @@ import { UserService } from '../user/user.service';
         PassportModule.register({ defaultStrategy: 'jwt' }),
         UserModule, AdminModule,
     ],
-    providers: [AuthService, JwtStrategy, GoogleStrategy, FacebookStrategy],
+    providers: [AuthService, JwtStrategy],
     controllers: [AuthController],
     exports: [AuthService],
 })

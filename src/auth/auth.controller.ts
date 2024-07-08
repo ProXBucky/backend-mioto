@@ -58,7 +58,7 @@ export class AuthController {
         return { message: 'New password sent to your email' };
     }
 
-    @Get('facebook/callback')
+    @Post('facebook/callback')
     @UseGuards(AuthGuard('facebook'))
     async facebookLoginCallback(@Req() req) {
         const user = await this.authService.findOrCreateUserFromFacebook(req.user);
@@ -66,9 +66,10 @@ export class AuthController {
         return { token, user };
     }
 
-    @Get('google/callback')
+    @Post('google/callback')
     @UseGuards(AuthGuard('google'))
     async googleLoginCallback(@Req() req) {
+        console.log(req)
         const user = await this.authService.findOrCreateUserFromGoogle(req.user);
         const token = await this.authService.createToken(user);
         return { token, user };
